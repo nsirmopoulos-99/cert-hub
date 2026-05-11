@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Certification Exam Simulator (Normal & Difficult Modes)</title>
+<style>
+    :root{--primary:#1a73e8;--primary-dark:#1765cc;--success:#188038;--warning:#f9ab00;--danger:#d93025;--text:#202124;--bg:#f8f9fa;--card-bg:#ffffff;--border:#dadce0;--diff-bg:#3c4043;--diff-text:#fff;}
+    *{box-sizing:border-box;font-family:'Roboto','Segoe UI',sans-serif}
+    body{margin:0;padding:0;background-color:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+    .container{max-width:900px;margin:40px auto;padding:20px;width:100%}
+    h1,h2{text-align:center;color:var(--text)}.subtitle{text-align:center;color:#5f6368;margin-bottom:30px}
+    .card{background:var(--card-bg);border-radius:8px;box-shadow:0 1px 2px 0 rgba(60,64,67,0.3);padding:30px;margin-bottom:20px}
+    .screen{display:none;animation:fadeIn 0.3s ease-in-out}.screen.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    
+    /* New Grid Layout for Categories */
+    .category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:20px}
+    .category-card{border:1px solid var(--border);border-radius:8px;padding:20px;background:#fff;transition:0.2s}
+    .category-card:hover{box-shadow:0 4px 8px rgba(0,0,0,0.1)}
+    .cat-title{font-size:1.2em;font-weight:bold;margin-bottom:5px;color:var(--text)}
+    .cat-meta{font-size:0.85em;color:#5f6368;margin-bottom:15px}
+    
+    .mode-buttons{display:flex;gap:10px}
+    .mode-btn{flex:1;padding:10px;border-radius:4px;border:none;cursor:pointer;font-weight:500;transition:0.2s}
+    .mode-normal{background:#e8f0fe;color:var(--primary);border:1px solid transparent}
+    .mode-normal:hover{background:#d2e3fc;border-color:var(--primary)}
+    .mode-difficult{background:#f1f3f4;color:#3c4043;border:1px solid transparent}
+    .mode-difficult:hover{background:#3c4043;color:#fff}
+
+    .progress-bar{width:100%;height:6px;background:#e0e0e0;border-radius:3px;margin-bottom:20px}
+    .progress-fill{height:100%;background:var(--primary);width:0%;transition:width 0.3s ease}
+    .progress-fill.difficult{background:var(--diff-bg)} /* Dark bar for difficult mode */
+
+    .question-meta{display:flex;justify-content:space-between;font-size:0.9em;color:#5f6368;margin-bottom:15px}
+    .diff-tag{background:#3c4043;color:#fff;padding:2px 6px;border-radius:4px;font-size:0.8em;font-weight:bold}
+    
+    .question-text{font-size:1.2em;line-height:1.5;margin-bottom:25px;font-weight:500}
+    .options-group{display:flex;flex-direction:column;gap:10px}
+    
+    .option-label{display:flex;align-items:center;padding:15px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:background 0.2s}
+    .option-label:hover:not(.disabled){background:#f1f3f4}
+    .option-input{margin-right:15px;transform:scale(1.2)}
+    .option-input:checked+span{font-weight:500}
+    
+    .option-label.disabled {cursor: default; pointer-events: none;}
+    .option-label.correct {border-color: var(--success); background-color: #e6f4ea; color: var(--success); font-weight: bold;}
+    .option-label.wrong {border-color: var(--danger); background-color: #fce8e6; color: var(--danger);}
+
+    .feedback-box {display: none; margin-top: 20px; padding: 15px; border-radius: 6px; border-left: 5px solid; background: #f8f9fa;}
+    .feedback-box.correct {border-color: var(--success); background: #e6f4ea;}
+    .feedback-box.wrong {border-color: var(--danger); background: #fce8e6;}
+    .feedback-title {font-weight: bold; margin-bottom: 5px; display: block;}
+
+    .nav-buttons{display:flex;justify-content:space-between;margin-top:30px}
+    .btn{padding:10px 24px;border:none;border-radius:4px;font-size:1em;cursor:pointer;font-weight:500}
+    .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+    .btn-secondary{background:#fff;color:var(--primary);border:1px solid var(--border)}.btn-secondary:hover{background:#f8f9fa}
+    .score-circle{width:150px;height:150px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 30px;border:8px solid var(--border);font-size:2.5em;font-weight:bold}
+    .pass{border-color:var(--success);color:var(--success)}.fail{border-color:var(--danger);color:var(--danger)}
+    .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Google Certification Preparation</h1>
+    <p class="subtitle">Select a Certification and Difficulty Level</p>
+    
+    <!-- SELECTION SCREEN -->
+    <div id="selection-screen" class="screen active card">
+        <div class="category-grid" id="category-grid">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- EXAM SCREEN -->
+    <div id="exam-screen" class="screen card">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="question-meta">
+            <span><span id="cert-label"></span> <span id="diff-label"></span></span>
+            <span id="question-count"></span>
+        </div>
+        <div id="question-container">
+            <div class="question-text" id="question-text"></div>
+            <div class="options-group" id="options-container"></div>
+            <div id="feedback-box" class="feedback-box"></div>
+        </div>
+        <div class="nav-buttons">
+            <button id="prev-btn" class="btn btn-secondary">Previous</button>
+            <button id="next-btn" class="btn btn-primary">Next</button>
+            <button id="finish-btn" class="btn btn-primary hidden">Submit Exam</button>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="screen card">
+        <h2>Exam Results</h2>
+        <div id="score-circle" class="score-circle">0%</div>
+        <div style="text-align:center;margin-bottom:30px">
+            <div id="result-message" style="font-size:1.5em;margin-bottom:10px"></div>
+            <p>Score: <span id="score-fraction"></span></p>
+            <p id="diff-result-label" style="color:#5f6368; font-size:0.9em; margin-top:5px"></p>
+        </div>
+        <div class="nav-buttons" style="justify-content:center;gap:20px">
+            <button id="home-btn" class="btn btn-primary">Return to Menu</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * DATA: Normalized question pools.
+ * Contains both 'normal' (from previous version) and new 'difficult' questions.
+ */
+const questionData = {
+    'ads-search': {
+        name: 'Google Ads Search',
+        questions: {
+            normal: [
+                { t: "Which automated bidding strategy should you use to increase conversion value while maintaining a specific ROAS?", o: ["Target ROAS", "Maximize Conversions", "Target CPA", "Maximize Clicks"], c: 0, e: "Target ROAS is specifically designed to get the most conversion value while adhering to a specific percentage return." },
+                { t: "Which three factors determine Quality Score?", o: ["Expected CTR, Ad Relevance, Landing Page Experience", "Bid, Ad Rank, CTR", "Speed, Relevance, Max CPC", "Audience, Ad Copy, History"], c: 0, e: "Quality Score = Expected CTR + Ad Relevance + Landing Page Experience." },
+                { t: "Which feature allows showing ads only to users who previously visited your website?", o: ["RLSA", "In-Market", "Affinity", "Demographic"], c: 0, e: "RLSA (Remarketing Lists for Search Ads) targets past visitors on Search." },
+                { t: "Benefit of Broad Match with Smart Bidding?", o: ["Captures new, high-performing queries", "Ensures exact spelling matches", "Lowers CPC only", "Guarantees position 1"], c: 0, e: "Broad match finds new queries; Smart Bidding ensures you only bid if likely to convert." },
+                { t: "Optimization Score range?", o: ["0% to 100%", "1 to 10", "A to F", "0 to 1000"], c: 0, e: "Optimization score estimates how well your account is set up, from 0% to 100%." },
+                { t: "What is 'Ad Strength'?", o: ["Feedback on relevance/diversity of assets", "Quality Score guarantee", "Click predictor", "Publisher tool"], c: 0, e: "Ad Strength measures the relevance, quantity, and diversity of your ad copy in an RSA." },
+                { t: "What is the minimum number of headlines required for an RSA?", o: ["3", "2", "5", "15"], c: 0, e: "Responsive Search Ads require at least 3 headlines and 2 descriptions." },
+                { t: "Which extension allows users to call you directly from the ad?", o: ["Call Asset", "Sitelink Asset", "Lead Form Asset", "Location Asset"], c: 0, e: "Call assets add a phone number or call button to your ads." },
+                { t: "What happens when your campaign hits its daily budget?", o: ["Ads stop showing for the rest of the day", "Ads continue but cost more", "Google bills you extra immediately", "Quality score drops"], c: 0, e: "Ads generally stop showing to prevent overspending, though pacing may smooth this out." },
+                { t: "Which match type offers the tightest control?", o: ["Exact Match", "Phrase Match", "Broad Match", "Negative Match"], c: 0, e: "Exact Match ([keyword]) ensures your ad only shows for the same meaning as your keyword." },
+                { t: "Where do you set the campaign location targeting?", o: ["Campaign Settings", "Ad Group Settings", "Account Settings", "Keyword Settings"], c: 0, e: "Locations (and languages/budgets) are configured at the Campaign level." },
+                { t: "What does 'Impression Share' measure?", o: ["Percentage of eligible impressions you received", "Total clicks", "Cost per impression", "Ad position"], c: 0, e: "Impression share is the impressions you've received divided by the estimated number of impressions you were eligible to receive." },
+                { t: "Purpose of 'Negative Keywords'?", o: ["Prevent ads from showing on irrelevant searches", "Lower bids", "Increase reach", "Target competitors"], c: 0, e: "Negative keywords exclude specific search terms from triggering your ads." },
+                { t: "Which tool helps you find new keywords?", o: ["Keyword Planner", "Performance Planner", "Reach Planner", "Audience Manager"], c: 0, e: "Keyword Planner helps you research keywords and get volume estimates." },
+                { t: "What is the benefit of Auto-Apply Recommendations?", o: ["Saves time on routine optimizations", "Guarantees #1 rank", "Removes all manual work", "Lowers all bids"], c: 0, e: "It automates best practices to improve performance and saves management time." },
+                { t: "Feature to customize ad text based on user query?", o: ["Keyword Insertion", "Dynamic Search Ads", "If-functions", "Ad Customizers"], c: 0, e: "Keyword insertion dynamically updates your ad text to include the keyword that triggered the ad." },
+                { t: "Which bidding strategy focuses on visibility?", o: ["Target Impression Share", "Maximize Clicks", "Target CPA", "Target ROAS"], c: 0, e: "Target Impression Share is designed to keep your ads visible in a specific location on the page." },
+                { t: "Primary benefit of Dynamic Search Ads (DSA)?", o: ["Fills gaps in keyword based targeting using your site content", "Lower CPC", "Better creative", "Video ads"], c: 0, e: "DSA uses your website content to target searches you might have missed with keywords." },
+                { t: "What allows you to measure 'Phone Calls' as conversions?", o: ["Call tracking (GCLID/Forwarding)", "Manual counting", "Surveys", "Website clicks"], c: 0, e: "Google forwarding numbers allow you to track calls duration and count them as conversions." },
+                { t: "Why organize Ad Groups by theme?", o: ["To show relevant ads for specific keywords", "To spend budget faster", "It is required", "To use broad match"], c: 0, e: "Theming ensures the ad copy matches the user's search intent closely, improving Relevance." },
+                { t: "What is a 'Sitelink'?", o: ["Link to specific page on your site", "Link to competitor", "Phone number", "Address"], c: 0, e: "Sitelinks are additional links that take people to specific pages on your website." },
+                { t: "Metric indicating how often people click your ad?", o: ["CTR (Click Through Rate)", "CPC", "CPM", "Conversion Rate"], c: 0, e: "CTR is Clicks divided by Impressions." },
+                { t: "Does Quality Score affect CPC?", o: ["Yes, higher QS often leads to lower CPC", "No, CPC is fixed", "Only for Display", "No, it affects budget"], c: 0, e: "A higher Quality Score allows you to pay less for the same ad position." },
+                { t: "What determines 'Ad Rank'?", o: ["Bid, Quality Score, Context, Assets", "Bid only", "Budget only", "CTR only"], c: 0, e: "Ad Rank is a combination of your bid, auction-time ad quality, and the expected impact of assets." },
+                { t: "Targeting option 'Presence or Interest' means?", o: ["People in, regularly in, or interested in your location", "Only people physically there", "Only people searching about it", "Tourists only"], c: 0, e: "It allows you to reach people physically in the location OR people interested in it." },
+                { t: "What is the 'Explanation' feature?", o: ["Diagnoses changes in performance", "Explains billing", "Support chat", "Video tutorial"], c: 0, e: "Explanations give you insights into why performance changed between two date ranges." },
+                { t: "Max number of descriptions in an RSA?", o: ["4", "2", "15", "10"], c: 0, e: "You can provide up to 4 descriptions." },
+                { t: "Benefit of 'Lead Form' assets?", o: ["Capture leads directly in the SERP", "Send email", "Call user", "Show map"], c: 0, e: "Users can submit their information without visiting your website." },
+                { t: "How does Performance Planner help?", o: ["Forecasts impact of budget/bid changes", "Automates ads", "Writes copy", "Edits videos"], c: 0, e: "It simulates different budget scenarios to predict conversions and metric changes." },
+                { t: "Best practice for RSA assets?", o: ["Provide distinct, unique headlines", "Repeat the same headline", "Use only brand name", "Keep them short"], c: 0, e: "Providing distinct, varied headlines allows the machine learning to test different value propositions." }
+            ],
+            difficult: [
+                { t: "SCENARIO: You switch from Manual CPC to Target CPA. Traffic drops significantly, but CPA is met. Why?", o: ["The target CPA was set too low", "Manual CPC is better", "Learning phase is broken", "QS reset"], c: 0, e: "If Target CPA is lower than historical CPA, the algorithm filters out auctions it deems 'too expensive', reducing volume." },
+                { t: "TECHNICAL: Max Lookback Window for Search conversions?", o: ["90 Days", "30 Days", "60 Days", "180 Days"], c: 0, e: "Search conversion windows can be set up to 90 days." },
+                { t: "OPTIMIZATION: If you 'Dismiss' a recommendation, what happens to Optimization Score?", o: ["Score increases", "Score decreases", "Stays same", "Recommendation reappears"], c: 0, e: "Dismissing a recommendation credits you the points, increasing your score." },
+                { t: "MATCH TYPES: Search 'running shoes for men'. Which keyword will NOT match in Broad Match?", o: ["None (All match)", "tennis shoes", "mens footwear", "gear"], c: 0, e: "Broad match looks at intent/concepts, so all related terms can trigger the ad." },
+                { t: "BIDDING: Effect of Max CPC cap on Target CPA?", o: ["Constrains AI from winning high-value auctions", "Lowers CPA", "Improves QS", "Overrides target"], c: 0, e: "Bid caps prevent the algorithm from bidding higher for users with high conversion probability." },
+                { t: "ATTRIBUTION: Data-Driven Attribution methodology?", o: ["Counterfactual analysis of paths", "First/Last split", "Linear average", "Time decay"], c: 0, e: "DDA compares paths with the ad vs paths without to determine incremental lift." },
+                { t: "SCENARIO: Auction Insights shows 80% 'Search Overlap' with Competitor A. What does this mean?", o: ["You appeared in the same auction 80% of the time", "You have 80% same keywords", "They outrank you 80% of time", "Your budget is same"], c: 0, e: "Overlap rate is how often a competitor's ad showed in the same auction as your ad." },
+                { t: "BIDDING: 'Top of page bid estimate' is based on?", o: ["Quality Score and competition", "Your budget", "Historical CTR only", "Ad rank threshold only"], c: 0, e: "It estimates the bid needed to reach the top of the page based on your QS and current competition." },
+                { t: "SCRIPTING: Which entity cannot be managed via Google Ads Scripts?", o: ["Billing/Invoicing", "Keywords", "Bids", "Ad Groups"], c: 0, e: "Scripts can manage entities and reports, but cannot change billing settings or invoicing details." },
+                { t: "DSA: How to exclude specific pages from Dynamic Search Ads?", o: ["Create Negative Dynamic Ad Targets", "Negative Keywords", "Remove from index", "Robots.txt"], c: 0, e: "You use Negative Dynamic Ad Targets to exclude URLs (e.g., 'sold out', 'careers') from DSA." },
+                { t: "CONVERSIONS: What is 'Enhanced Conversions'?", o: ["Uses hashed 1st party data (email) to improve measurement", "Increases conversion rate", "Tracks views", "Uses 3rd party cookies"], c: 0, e: "It hashes user data (email) on your site and matches it to signed-in Google users to recover lost conversions." },
+                { t: "SCENARIO: tROAS is 500%. Campaign realizes 300%. What will the algorithm do?", o: ["Lower bids to find cheaper conversions", "Raise bids to get more volume", "Stop spending", "Switch to Max Clicks"], c: 0, e: "To increase ROAS from 300% to 500%, the system lowers bids to reduce cost, sacrificing volume for efficiency." },
+                { t: "QUALITY SCORE: Which is NOT a component of 'Landing Page Experience'?", o: ["Server Location", "Load time", "Mobile friendliness", "Relevance to ad"], c: 0, e: "Server location doesn't matter directly; load time (speed) and user experience do." },
+                { t: "AUDIENCES: 'Similar Segments' are being replaced by?", o: ["Optimized Targeting / Audience Expansion", "Keywords", "Manual targeting", "Nothing"], c: 0, e: "Similar Segments are deprecated in favor of automated expansion like Optimized Targeting." },
+                { t: "POLICY: What triggers 'Circumventing Systems' suspension?", o: ["Cloaking or obfuscating text", "Low budget", "Bad grammar", "Using trademark"], c: 0, e: "Cloaking (showing different content to Googlebot vs users) is a severe violation." },
+                { t: "SCENARIO: Impression Share is 10%. Lost IS (Rank) is 80%. Lost IS (Budget) is 10%. Fix?", o: ["Improve Ad Rank (Bid/QS)", "Increase Budget", "Add keywords", "Change location"], c: 0, e: "Lost IS (Rank) means you are losing auctions due to poor Bid or Quality Score, not budget." },
+                { t: "API: What is the 'GCLID' expiration time for offline uploads?", o: ["90 days", "30 days", "24 hours", "Infinite"], c: 0, e: "You must upload the offline conversion within 90 days of the click." },
+                { t: "MATCH TYPES: 'Smart Bidding' treats Exact Match differently how?", o: ["It still respects intent, but prioritizes identical meaning", "It ignores it", "It treats it as Broad", "It lowers bids"], c: 0, e: "Even with Exact Match, Smart Bidding may match close variants if the intent is identical." },
+                { t: "ASSETS: How many Sitelinks can show at once on desktop?", o: ["Up to 6", "Up to 4", "Up to 2", "Up to 8"], c: 0, e: "On desktop, up to 6 sitelinks can appear. On mobile, usually up to 4." },
+                { t: "BILLING: What is the 'Monthly Invoicing' minimum spend requirement?", o: ["$5,000/month for 3 months", "$1,000", "$10,000", "No minimum"], c: 0, e: "Typically requires $5k/mo spend for 3 of the last 12 months to qualify for credit lines." },
+                { t: "EXPERIMENTS: What is a 'Cookie-based' split vs 'Search-based' split?", o: ["Cookie assigns user to test; Search assigns query to test", "They are same", "Cookie is for Display", "Search is for Shopping"], c: 0, e: "Cookie-based ensures a user sees only one version (Control or Experiment). Search-based randomizes every search." },
+                { t: "GEO: How to exclude people physically in a location but interested in another?", o: ["Exclude the physical location", "Use 'Interest Only'", "Use 'Presence Only' positive", "Cannot do it"], c: 0, e: "You must exclude the specific geographic area where you don't want ads to show." },
+                { t: "REPORTS: What is the difference between 'Clicks' and 'Interactions'?", o: ["Interactions include calls/swipes; Clicks are link clicks", "No difference", "Interactions are conversions", "Clicks are paid"], c: 0, e: "Interactions is a broader metric that includes clicks, but also engaging with ad formats (like swiping a gallery)." },
+                { t: "AUTOMATION: Function of 'Seasonality Adjustments' in Smart Bidding?", o: ["Informs algorithm of short-term conversion rate spikes", "Changes budget", "Changes ad copy", "Sets long term trend"], c: 0, e: "It tells the bidding system to expect a temporary spike (e.g., a 3-day sale) so it bids aggressively without 'learning' the spike as normal." },
+                { t: "VALUE RULES: What can Conversion Value Rules adjust for?", o: ["Location, Device, Audience", "Time of day", "Keyword", "Weather"], c: 0, e: "You can adjust conversion values based on User Location, Device, or Audience membership." },
+                { t: "VERIFICATION: What is required for 'Advertiser Identity Verification'?", o: ["Legal documents proving identity/business", "Credit card", "Photo of office", "Utility bill only"], c: 0, e: "Advertisers must submit official legal registration documents or personal ID to be verified." },
+                { t: "LOCAL: How does a 'Local Service Ad' differ from Search Ad?", o: ["Pay per Lead, not Click", "Pay per View", "Pay per Impression", "Pay per Sale"], c: 0, e: "LSAs (Google Guarantee) charge per valid lead, not per click." },
+                { t: "PMAX: Can you use 'Brand Exclusions' in Performance Max?", o: ["Yes, at campaign level", "No", "Only via support", "Only negative keywords"], c: 0, e: "PMax now supports Brand Exclusions lists to prevent serving on branded traffic." },
+                { t: "BUDGET: What is the maximum a campaign can spend in a single day vs daily budget?", o: ["Up to 2x daily budget", "Exactly daily budget", "1.2x daily budget", "Unlimited"], c: 0, e: "Google can spend up to 2x your daily budget on high-traffic days, but won't exceed 30.4x monthly." },
+                { t: "ACCOUNT: What allows sharing lists between accounts?", o: ["Manager Account (MCC)", "Linking", "Copy paste", "Import"], c: 0, e: "A Manager Account allows sharing of remarketing lists and conversion actions across child accounts." }
+            ]
+        }
+    },
+    'ads-display': {
+        name: 'Google Ads Display',
+        questions: {
+            normal: [
+                { t: "Ad format that automatically adjusts size?", o: ["Responsive Display Ads", "Image Ads", "Lightbox", "HTML5"], c: 0, e: "RDAs automatically adjust size and format." },
+                { t: "Bidding strategy for Branding/Reach?", o: ["vCPM", "Target CPA", "Max Conversions", "CPC"], c: 0, e: "Viewable CPM (vCPM) pays for visible impressions." },
+                { t: "What is 'Optimized Targeting'?", o: ["Finds users likely to convert beyond selections", "Restricts to keywords", "Targets existing customers", "Manual targeting"], c: 0, e: "It finds new people likely to convert outside your targeting signals." },
+                { t: "Where do Display ads appear?", o: ["Google Display Network (3M+ sites)", "Search results", "Shopping tab", "Maps"], c: 0, e: "The GDN includes millions of sites and apps." },
+                { t: "Standard aspect ratios for RDA images?", o: ["1.91:1 (Landscape) and 1:1 (Square)", "16:9", "4:3", "Vertical"], c: 0, e: "Landscape and Square are the required image assets." },
+                { t: "How do 'Custom Segments' work on Display?", o: ["Target interests or browsing behavior", "Target search history", "Target demographics", "Target emails"], c: 0, e: "On Display, Custom Segments target based on interests, URLs visited, or apps used." },
+                { t: "Difference between Affinity and In-Market?", o: ["Affinity = Long-term interest; In-Market = Active research", "Affinity = Buying; In-Market = Liking", "Same thing", "Affinity is for search"], c: 0, e: "Affinity is for brand awareness (lifestyle); In-Market is for performance (ready to buy)." },
+                { t: "What is the 'Observation' setting?", o: ["Monitors audience without restricting reach", "Restricts reach", "Blocks audience", "Increases bid only"], c: 0, e: "Observation allows you to see data and adjust bids for an audience without limiting who sees the ad." },
+                { t: "Can you target specific YouTube channels via Display?", o: ["Yes, via Placements", "No", "Only topics", "Only keywords"], c: 0, e: "Managed Placements allow targeting specific YouTube channels or videos." },
+                { t: "Metric for measuring ad visibility?", o: ["Active View / Viewability", "CTR", "CPC", "Conversion Rate"], c: 0, e: "Active View metrics tell you how often your ad was actually viewable." },
+                { t: "What file type is supported for Uploaded Ads?", o: ["HTML5 / GIF / JPG", "MP4", "PDF", "DOC"], c: 0, e: "You can upload static images (JPG/PNG), animated GIFs, or HTML5 zips." },
+                { t: "Purpose of 'Dynamic Remarketing'?", o: ["Show specific products users viewed", "Show general brand ads", "Target new users", "Email users"], c: 0, e: "It dynamically inserts the exact product a user looked at into the ad." },
+                { t: "What triggers a 'System Circumvention' disapproval?", o: ["Malware or hiding destination", "Blurry image", "Big text", "Slow site"], c: 0, e: "Interfering with Google's review systems or hiding the true destination triggers this." },
+                { t: "Best bidding strategy for driving Leads?", o: ["Target CPA", "vCPM", "Manual CPC", "Target Impression Share"], c: 0, e: "Target CPA focuses on getting conversions (leads) at a set cost." },
+                { t: "How to prevent ads on 'Tragedy and Conflict' content?", o: ["Content Exclusions", "Negative Keywords", "Placement exclusions", "Demographics"], c: 0, e: "Content Exclusions (Suitability settings) prevent serving on sensitive content categories." },
+                { t: "What is 'Frequency Capping'?", o: ["Limit how often a user sees your ad", "Limit budget", "Limit clicks", "Limit time"], c: 0, e: "It ensures users don't get annoyed by seeing your ad too many times." },
+                { t: "Which RDA asset is optional?", o: ["Video", "Headline", "Image", "Final URL"], c: 0, e: "Video assets are optional in RDAs, though recommended." },
+                { t: "What is a 'Responsive Display Ad' strength?", o: ["Reach and native fit", "Total control", "Fixed size", "Guaranteed clicks"], c: 0, e: "Its strength is adapting to any ad slot, maximizing reach." },
+                { t: "Can Display ads appear in Gmail?", o: ["Yes", "No", "Only text", "Only in spam"], c: 0, e: "The GDN includes Gmail (Promotions tab)." },
+                { t: "Targeting option 'Similar Segments' looks for?", o: ["New users like your remarketing lists", "Competitors", "Exact matches", "Bots"], c: 0, e: "It finds lookalikes based on your first-party data." },
+                { t: "What is 'Topic' targeting?", o: ["Pages about a specific subject", "Specific URLs", "User interests", "Keywords"], c: 0, e: "Topics target the content of the website (Contextual)." },
+                { t: "Metric: 'View-through conversion'?", o: ["User saw ad, didn't click, converted later", "Clicked and converted", "Watched video", "Bounce"], c: 0, e: "It measures the value of an impression that didn't result in a click but influenced a conversion." },
+                { t: "Requirement for Custom HTML5 ads?", o: ["Spend history / Account compliance", "Any account", "Manager account", "None"], c: 0, e: "Accounts must have a history of compliance and spend to unlock HTML5 upload capability." },
+                { t: "How does Smart Display differ from Standard?", o: ["Fully automated (bidding/targeting/ads)", "Manual targeting", "Video only", "Search only"], c: 0, e: "Smart Display automates almost everything." },
+                { t: "Asset: 'Logo' aspect ratio?", o: ["1:1 (Square) and 4:1 (Landscape)", "16:9", "Vertical", "Round"], c: 0, e: "Logos should be square (1:1) and optionally landscape (4:1)." },
+                { t: "What is the 'Learning Period' for Display?", o: ["~2 weeks or 50 conversions", "24 hours", "3 months", "1 day"], c: 0, e: "Smart Bidding needs time and data to calibrate." },
+                { t: "How to target 'Parents of Infants'?", o: ["Detailed Demographics", "Affinity", "In-Market", "Topics"], c: 0, e: "Parental status splits are found in Detailed Demographics." },
+                { t: "Ad format 'Lightbox' is designed for?", o: ["Engagement (Expandable)", "Click", "Traffic", "Sales"], c: 0, e: "Lightbox ads expand when hovered/tapped to show rich media." },
+                { t: "Can you exclude mobile apps completely?", o: ["Yes, via placement exclusions", "No", "Only games", "Only iOS"], c: 0, e: "You can exclude app categories or specific app placements." },
+                { t: "What determines if an image is 'High Quality'?", o: ["Clear, no overlay text, good lighting", "File size", "Bright colors", "Logo inclusion"], c: 0, e: "No blurry text, no button overlays, clear subject matter." }
+            ],
+            difficult: [
+                { t: "METRICS: 'Viewable' Display ad criteria?", o: ["50% pixels visible for 1s", "100% for 1s", "50% for 2s", "Any pixel"], c: 0, e: "MRC standard: 50% pixels for 1 second." },
+                { t: "SCENARIO: 'Pay for Conversions' constraint?", o: ["Target CPA < Daily Budget", "CPA > Budget", "No limit", "ROAS only"], c: 0, e: "You cannot set a Target CPA higher than your daily budget when paying for conversions." },
+                { t: "STRATEGY: High Impressions, Zero Clicks on App?", o: ["Accidental click protection", "Fraud", "High Bid", "Bad Creative"], c: 0, e: "Google prevents counting accidental edge clicks on mobile apps." },
+                { t: "TECHNICAL: File type for interactive ads?", o: ["HTML5 .zip", "GIF", "MP4", "JS"], c: 0, e: "HTML5 ads must be zipped." },
+                { t: "AUDIENCES: Custom Intent Display vs YouTube?", o: ["Display = Interest/Context; YouTube = Search History", "Same", "Display = Search", "YouTube = Interest"], c: 0, e: "YouTube targets actual search queries; Display targets interest/content." },
+                { t: "FEED: Dynamic Remarketing 'ecomm_prodid' must match?", o: ["'id' in Merchant Center", "'title'", "'link'", "'price'"], c: 0, e: "The ID passed in the tag must match the ID in the Feed exactly." },
+                { t: "SCENARIO: CTR is 0.05% on Display. Is this bad?", o: ["Normal for Display", "Terrible", "Excellent", "Suspicious"], c: 0, e: "Display CTR is typically very low (avg 0.35% or lower). 0.05% is low but not impossible for broad reach." },
+                { t: "EXCLUSIONS: Excluding 'googleadsense_without_youtube.com' does what?", o: ["Nothing (Deprecated)", "Excludes Apps", "Excludes Websites", "Excludes Video"], c: 0, e: "This was an old workaround to exclude apps, but it is no longer supported." },
+                { t: "BIDDING: Viewable CPM (vCPM) is available for which network?", o: ["Display only", "Search", "Shopping", "App"], c: 0, e: "vCPM is a Display-specific bidding strategy." },
+                { t: "ATTRIBUTION: Does Display use Data-Driven Attribution?", o: ["Yes, if eligible", "No, Last Click only", "No, View only", "Only Time Decay"], c: 0, e: "Yes, DDA is available for Display if data requirements are met." },
+                { t: "FORMAT: AMPHTML ads vs HTML5?", o: ["AMPHTML is faster/lighter/secure", "AMPHTML is video", "HTML5 is faster", "No difference"], c: 0, e: "AMPHTML ads load faster and are more secure, preventing malware." },
+                { t: "TAGGING: What parameter identifies a Display click?", o: ["GCLID", "DCLID", "FBCLID", "UTM"], c: 0, e: "Google Click ID (GCLID) is used for Display tracking too." },
+                { t: "SCENARIO: You want to target people who visited a competitor's URL. Which audience?", o: ["Custom Segment (Enter URLs)", "Affinity", "In-Market", "Remarketing"], c: 0, e: "Entering URLs in a Custom Segment targets people with *interests* similar to visitors of those sites." },
+                { t: "OPTIMIZATION: 'Enhanced CPC' on Display optimizes for?", o: ["Conversions", "Clicks", "Reach", "Views"], c: 0, e: "ECPC raises bids for clicks likely to lead to a conversion." },
+                { t: "POLICY: 'Personally Identifiable Information' (PII) in remarketing?", o: ["Strictly Prohibited", "Allowed with consent", "Allowed hashed", "Allowed in URL"], c: 0, e: "Passing PII (email, name) in clear text in remarketing tags is a severe policy violation." },
+                { t: "TARGETING: 'Conservative' vs 'Aggressive' targeting expansion?", o: ["Aggressive finds more users at potentially higher CPA", "Conservative spends more", "Aggressive is manual", "Conservative is keywords"], c: 0, e: "Aggressive expansion varies the CPA more to find volume." },
+                { t: "METRIC: 'Relative CTR'?", o: ["Your CTR vs Competitors on same placements", "CTR vs Search", "CTR vs last month", "CTR vs Industry"], c: 0, e: "It measures how your ad performs relative to other ads on the same websites." },
+                { t: "CREATIVE: Can you use a GIF in RDA?", o: ["No, static or HTML5 only", "Yes", "Only in logo", "Only in video"], c: 0, e: "RDAs generally accept static JPG/PNG. Animated GIFs are for Image Ads." },
+                { t: "SCENARIO: High bounce rate from Display traffic. Why?", o: ["Accidental clicks or poor landing page match", "Bot traffic only", "Tracking error", "Normal behavior"], c: 0, e: "Display traffic is colder; users might click accidentally or lose interest quickly." },
+                { t: "BIDDING: Can you use 'Target ROAS' for a new Display campaign with 0 conversions?", o: ["No, needs history", "Yes", "Only if PMax", "Only if vCPM"], c: 0, e: "tROAS requires conversion history (usually 15+ in last 30 days) to work effectively." },
+                { t: "PLACEMENT: Difference between 'App' placement and 'Web' placement?", o: ["App is inside an installed application", "Web is browser", "App is cheaper", "Web is video"], c: 0, e: "App placements occur inside mobile apps (games, utilities). Web is mobile Chrome/Safari." },
+                { t: "TARGETING: Does 'Topic' targeting guarantee placement?", o: ["No, it targets pages *about* that topic", "Yes", "Only on homepages", "Only on YouTube"], c: 0, e: "It targets the context. If a page is about 'Sports', your ad *can* appear there." },
+                { t: "MEASUREMENT: 'Store Visits' requirements?", o: ["High volume, GMB linked, location assets", "Any account", "Just location asset", "Manual upload"], c: 0, e: "Requires significant data and linking to Google My Business." },
+                { t: "STRATEGY: Best way to scale a successful Display campaign?", o: ["Use Optimized Targeting or Similar Segments", "Increase CPC", "Add keywords", "Change creative"], c: 0, e: "Expansion features find new users similar to your converters." },
+                { t: "CREATIVE: Main cause of 'Low Ad Strength' in RDA?", o: ["Lack of asset variety (Headlines/Images)", "Low budget", "Bad URL", "Targeting"], c: 0, e: "Not providing enough distinct headlines, descriptions, and aspect ratios." },
+                { t: "TECHNICAL: 'Impression Reporting' for unlinked DCM?", o: ["Not possible", "Use pixel", "Manual count", "Excel"], c: 0, e: "Requires linking Campaign Manager 360 to see floodlight data." },
+                { t: "POLICY: 'Clickbait' ads?", o: ["Disapproved (Misrepresentation)", "Allowed", "High CTR", "Recommended"], c: 0, e: "Ads using 'One weird trick' or sensationalist language are disapproved." },
+                { t: "SCENARIO: Ad is 'Approved (Limited)'. Why?", o: ["Policy restriction (e.g., Alcohol, Gambling) in some regions", "Budget low", "Bid low", "Creative bad"], c: 0, e: "It means the ad is allowed but restricted by geography or age due to sensitive content." },
+                { t: "TARGETING: 'Household Income' targeting availability?", o: ["Select countries only (US, etc.)", "Global", "None", "Europe only"], c: 0, e: "HHI targeting is not available in all countries due to privacy/data availability." },
+                { t: "BIDDING: 'Maximize Clicks' on Display risks?", o: ["Low quality traffic / High bounce rate", "High cost", "Low impressions", "Ad fatigue"], c: 0, e: "The algorithm finds the cheapest clicks, which are often lower quality or accidental." }
+            ]
+        }
+    },
+    'ads-video': {
+        name: 'Google Ads Video',
+        questions: {
+            normal: [
+                { t: "Format skippable after 5 seconds?", o: ["Skippable in-stream", "Non-skippable", "Bumper", "Outstream"], c: 0, e: "Skippable in-stream allows skipping." },
+                { t: "ABCD framework stands for?", o: ["Attract, Brand, Connect, Direct", "Action, Brand, Conversion, Data", "Audience, Bid, Creative, Drive", "Attention, Buy, Click, Direct"], c: 0, e: "Attract, Brand, Connect, Direct." },
+                { t: "Definition of a 'View' (Skippable)?", o: ["30s watch or interaction", "5s watch", "Impression", "Hover"], c: 0, e: "30 seconds, full duration, or interaction." },
+                { t: "Bidding for Conversions in Video?", o: ["Target CPA / Max Conversions", "CPV", "vCPM", "Target Impression Share"], c: 0, e: "Action campaigns use Target CPA." },
+                { t: "Where do In-Feed Video ads appear?", o: ["Search results / Watch Next", "Inside videos", "Search Network", "Maps"], c: 0, e: "Discovery slots like search results." },
+                { t: "Bumper ad length?", o: ["6 seconds or less", "15s", "30s", "5s"], c: 0, e: "Bumpers are max 6 seconds." },
+                { t: "Bidding strategy for Bumpers?", o: ["Target CPM", "CPV", "CPA", "CPC"], c: 0, e: "Bumpers are CPM only (Brand awareness)." },
+                { t: "What is 'Video Action Campaign'?", o: ["Driving conversions across YouTube", "Views only", "TV only", "Search only"], c: 0, e: "VAC is designed to drive sales/leads." },
+                { t: "Masthead ad location?", o: ["YouTube Homepage top", "Search results", "Before video", "Sidebar"], c: 0, e: "The Masthead is the premium homepage slot." },
+                { t: "Can you target TV screens?", o: ["Yes, Device Targeting", "No", "Only via Display", "Only manually"], c: 0, e: "Yes, you can target Connected TV devices." },
+                { t: "What is 'Brand Lift'?", o: ["Measuring ad recall/awareness lift", "Clicks", "Sales", "SEO"], c: 0, e: "Survey-based measurement of brand metrics." },
+                { t: "Non-skippable length?", o: ["15s (usually)", "30s", "6s", "60s"], c: 0, e: "Typically 15 seconds (20s in some regions)." },
+                { t: "What is a 'Companion Banner'?", o: ["Image next to video on desktop", "Overlay", "End screen", "Text"], c: 0, e: "A clickable image accompanying the video ad on desktop." },
+                { t: "Where do Outstream ads play?", o: ["Partner sites/apps (Mobile)", "YouTube", "Desktop", "TV"], c: 0, e: "Outstream is mobile-only on partner inventory." },
+                { t: "Objective for 'Product & Brand Consideration'?", o: ["Influence consideration", "Sales", "Pure reach", "Traffic"], c: 0, e: "Getting people to think about your brand." },
+                { t: "What is 'Custom Intent' on YouTube?", o: ["Targets users searching keywords on Google", "Interests", "Demographics", "Topics"], c: 0, e: "Targets based on recent Google search history." },
+                { t: "Feature to add products to video ad?", o: ["Product Feed", "Sitelink", "Extension", "Banner"], c: 0, e: "Link Merchant Center to show products." },
+                { t: "What counts as an 'interaction'?", o: ["Clicking elements/CTA", "Mouseover", "Seeing it", "Skipping"], c: 0, e: "Clicks on CTA or cards count as interactions." },
+                { t: "Main benefit of Reach Planner?", o: ["Forecast reach/frequency", "Edit video", "Buy ads", "Analyze logs"], c: 0, e: "Planning tool for reach and budget." },
+                { t: "Ad Sequencing benefit?", o: ["Tell a story in order", "Random ads", "Frequency cap", "Lower cost"], c: 0, e: "Show ads in a specific sequence to a user." },
+                { t: "Can you use keywords on YouTube?", o: ["Yes (Contextual)", "No", "Only negative", "Only broad"], c: 0, e: "Keywords target content (context)." },
+                { t: "YouTube analytics 'Retention' graph shows?", o: ["Drop-off points in video", "Clicks", "Age", "Gender"], c: 0, e: "How long users watch before dropping off." },
+                { t: "Audience: 'Detailed Demographics'?", o: ["Homeownership, Education", "Age", "Gender", "Interests"], c: 0, e: "Advanced traits like student status or homeowner." },
+                { t: "Frequency Capping is set at?", o: ["Campaign Level", "Ad Group", "Account", "Ad"], c: 0, e: "Frequency caps are campaign settings." },
+                { t: "What is 'Run of Network'?", o: ["All inventory", "Specific channel", "Search only", "TV only"], c: 0, e: "Targeting broadly across all YouTube/Video inventory." },
+                { t: "Video element 'Direct' (ABCD) means?", o: ["Clear Call to Action", "Direct mail", "Direction", "Directing movie"], c: 0, e: "Tell the user exactly what to do." },
+                { t: "Can you exclude 'Live Streaming' content?", o: ["Yes, Content Exclusions", "No", "Only manually", "Only kids"], c: 0, e: "You can exclude live streams in settings." },
+                { t: "Format 'Video Reach Campaign' mixes?", o: ["Bumpers + Skippable + Non-Skip", "Search + Video", "Display + Video", "Audio + Video"], c: 0, e: "VRC optimizes a mix of formats for max reach." },
+                { t: "Targeting 'Life Events' includes?", o: ["Marriage, Graduation, Moving", "Buying car", "Eating", "Sleeping"], c: 0, e: "Major milestones." },
+                { t: "Billing for Non-Skippable ads?", o: ["CPM", "CPV", "CPA", "CPC"], c: 0, e: "Non-skip is paid by impression (CPM)." }
+            ],
+            difficult: [
+                { t: "BIDDING: Can you use Max CPV for Bumper Ads?", o: ["No, CPM only", "Yes", "Only in PMax", "Sometimes"], c: 0, e: "Bumpers (6s) are too short for a 'view' metric, so they are CPM only." },
+                { t: "MEASUREMENT: Min requirement for Brand Lift 2.0?", o: ["Minimum budget thresholds", "100 clicks", "Linked GA4", "Masthead"], c: 0, e: "Requires significant budget to generate survey sample size." },
+                { t: "FORMATS: Video Ad Sequence rules?", o: ["Can mix CPV and CPM formats", "Must be same length", "No Bumpers", "Manual CPV only"], c: 0, e: "Sequences can mix formats and bidding types." },
+                { t: "TECHNICAL: Why is VAC not spending?", o: ["tCPA too low", "Video too long", "No keywords", "No inventory"], c: 0, e: "Suffocating tCPA kills delivery." },
+                { t: "ATTRIBUTION: Engaged-view (EVC) vs View-through (VTC)?", o: ["EVC = 10s watch; VTC = Impression", "EVC = Click", "VTC = 30s", "Same"], c: 0, e: "EVC is 10s watch without click; VTC is just impression." },
+                { t: "STRATEGY: 'Effective Video Ad Sequencing' structure?", o: ["Tease, Amplify, Echo", "Buy, Buy, Buy", "Long, Long, Long", "Short only"], c: 0, e: "Classic framework: Tease (Short), Amplify (Long), Echo (Short)." },
+                { t: "METRIC: 'Quartile Reporting'?", o: ["% of video watched (25/50/75/100)", "Four ads", "Screen quadrant", "Quality score"], c: 0, e: "Shows how many users reached each quarter of the video." },
+                { t: "FORMAT: 'YouTube Select' lineup?", o: ["Top 5% premium content", "Random", "Low cost", "UGC"], c: 0, e: "Pre-packaged premium content (TV, top creators)." },
+                { t: "OPTIMIZATION: Impact of 'Target Frequency' strategy?", o: ["Prioritizes showing ad X times/week", "Reach only", "Clicks only", "Sales"], c: 0, e: "It optimizes to hit a specific frequency goal (e.g., 4x per week)." },
+                { t: "CREATIVE: Audio specs for YouTube?", o: ["95% on, use sound design", "Silent", "Music only", "No speech"], c: 0, e: "YouTube is sound-on; audio is critical for lift." },
+                { t: "SCENARIO: CPV is rising. Why?", o: ["Creative fatigue or high competition", "Budget increase", "Algorithm broken", "Platform bug"], c: 0, e: "Competition or ad fatigue (lower view rates) drives up CPV." },
+                { t: "POLICY: 'Shocking Content'?", o: ["Disapproved", "Allowed", "High CTR", "Viral"], c: 0, e: "Gruesome, disgusting, or shocking content is banned." },
+                { t: "DATA: 'Earned Views'?", o: ["Organic views on other videos after seeing ad", "Paid views", "Free clicks", "Likes"], c: 0, e: "Views on your channel that happened organically after an ad view." },
+                { t: "TARGETING: 'Device Models'?", o: ["Target specific phones (iPhone 14)", "Mobile vs Desktop", "OS only", "Carrier"], c: 0, e: "You can target specific hardware models." },
+                { t: "FORMAT: 'Masthead' buying model?", o: ["CPD (Day) or CPM (Reservation)", "Auction", "CPV", "CPA"], c: 0, e: "Masthead is bought via reservation." },
+                { t: "SCENARIO: High View Rate but Low Conversion?", o: ["Good content, weak offer/CTA", "Bad targeting", "Low budget", "Bad video"], c: 0, e: "People like watching, but aren't compelled to buy. Fix CTA/Landing Page." },
+                { t: "BIDDING: 'Maximize Lift' optimizes for?", o: ["Survey responses (Lift)", "Clicks", "Views", "Sales"], c: 0, e: "Optimizes for Brand Lift study results." },
+                { t: "TECHNICAL: 'Lead Form' data download?", o: ["CSV from Google Ads / Webhook", "Email", "Mail", "Phone"], c: 0, e: "Download CSV manually or use Webhook/Zapier." },
+                { t: "AUDIENCE: 'Customer Match' match rate?", o: ["Depends on Google Account linkage", "100%", "50%", "Low"], c: 0, e: "Matches email/phone to Google accounts." },
+                { t: "FORMAT: 'Shorts' aspect ratio?", o: ["9:16 (Vertical)", "16:9", "4:3", "1:1"], c: 0, e: "Shorts are full-screen vertical." },
+                { t: "STRATEGY: Why link Google Merchant Center?", o: ["Show product cards", "Better reporting", "Lower cost", "Required"], c: 0, e: "Makes ads shoppable." },
+                { t: "METRIC: 'Cost Per Lift'?", o: ["Cost / Lifted Users", "Cost / Click", "Cost / View", "Cost / Sale"], c: 0, e: "Efficiency of driving brand lift." },
+                { t: "PLACEMENT: Can you block 'Embedded Videos'?", o: ["Yes", "No", "Only games", "Only live"], c: 0, e: "You can exclude embedded videos on websites." },
+                { t: "OPTIMIZATION: 'Placements' report usage?", o: ["Exclude low performing channels/kids content", "See keywords", "Check speed", "Edit video"], c: 0, e: "Check where ads ran and exclude irrelevant channels." },
+                { t: "FORMAT: 'Discovery' ads are now?", o: ["Demand Gen", "PMax", "Display", "Search"], c: 0, e: "Discovery is upgrading to Demand Gen." },
+                { t: "POLICY: Copyright music?", o: ["Flagged/limited serving", "Banned", "Allowed", "Recommended"], c: 0, e: "Content ID will flag it; ads may be restricted." },
+                { t: "SCENARIO: Branding campaign with limited budget?", o: ["Bumpers / Video Reach", "Masthead", "Search", "Shopping"], c: 0, e: "Bumpers are efficient for reach on low budget." },
+                { t: "BIDDING: Can you use Manual CPV in VAC?", o: ["No, tCPA/Max Conv only", "Yes", "Sometimes", "Always"], c: 0, e: "Action campaigns require Smart Bidding." },
+                { t: "DATA: 'Unique Reach'?", o: ["Unique users reached", "Total impressions", "Clicks", "Views"], c: 0, e: "De-duplicated count of people." },
+                { t: "CREATIVE: 'Voiceover' tool?", o: ["Add TTS in Asset Library", "Record manual", "Hire actor", "Upload MP3"], c: 0, e: "Google's AI text-to-speech tool." }
+            ]
+        }
+    },
+    'ads-shopping': {
+        name: 'Google Ads Shopping',
+        questions: {
+            normal: [
+                { t: "Required ID attribute?", o: ["id", "mpn", "gtin", "brand"], c: 0, e: "ID is unique." },
+                { t: "Bid strategy for max revenue?", o: ["Target ROAS", "Max Clicks", "Manual CPC", "tIS"], c: 0, e: "tROAS = Value." },
+                { t: "What is GTIN?", o: ["Global Trade Item Number", "Google ID", "Tax ID", "Tag"], c: 0, e: "UPC/EAN code." },
+                { t: "Platform for feeds?", o: ["Merchant Center", "Ads", "Analytics", "GMB"], c: 0, e: "GMC manages feeds." },
+                { t: "identifier_exists=no?", o: ["Custom/Handmade", "Forgot", "Rejected", "Cheap"], c: 0, e: "No barcode exists." },
+                { t: "PMax vs Standard?", o: ["PMax = Automation/All channels", "PMax = Search", "Standard = No feed", "Manual"], c: 0, e: "PMax is omni-channel automation." },
+                { t: "Out of Stock behavior?", o: ["Stops serving", "Charges more", "Warning", "Pause manual"], c: 0, e: "Ads stop automatically." },
+                { t: "Local Inventory Ads?", o: ["In-store products", "Online only", "Showcase", "Video"], c: 0, e: "Shows products in nearby store." },
+                { t: "Subdividing products?", o: ["Product Groups", "Keywords", "Ad Copy", "Campaign"], c: 0, e: "Break down by brand/category." },
+                { t: "Merchant Promotions?", o: ["Show discounts/offers", "Coupons", "Sitelinks", "Text"], c: 0, e: "Special offer tags." },
+                { t: "Price mismatch result?", o: ["Disapproval", "Fine", "Rank drop", "Nothing"], c: 0, e: "Feed must match landing page." },
+                { t: "Custom Labels usage?", o: ["Internal grouping/bidding", "Customer view", "Discount", "SEO"], c: 0, e: "Seasonality, margin, etc." },
+                { t: "Image specs?", o: ["White background, clean", "Watermark", "Text", "Dark"], c: 0, e: "Clean product image." },
+                { t: "Multi-country ads?", o: ["Add feed/target country", "Budget up", "Translate", "Copy"], c: 0, e: "Configure in GMC." },
+                { t: "Feed error check?", o: ["Diagnostics", "Overview", "Settings", "Growth"], c: 0, e: "Diagnostics tab." },
+                { t: "Supplemental Feed?", o: ["Update/add data", "Replace", "Image only", "Delete"], c: 0, e: "Enrich primary feed." },
+                { t: "Adult content policy?", o: ["Label in feed", "Banned", "Allowed", "Pixelate"], c: 0, e: "Must be labeled." },
+                { t: "Title optimization?", o: ["Key details first", "Short", "Caps", "Vague"], c: 0, e: "Front-load information." },
+                { t: "Shipping settings?", o: ["GMC", "Ads", "Site", "Feed"], c: 0, e: "Configure in GMC." },
+                { t: "CSS (Europe)?", o: ["Comparison Shopping Service", "Style", "Support", "Ship"], c: 0, e: "Partner required in EEA." },
+                { t: "Feed expiration?", o: ["30 days", "Never", "7 days", "1 year"], c: 0, e: "Re-upload every 30 days." },
+                { t: "Apparel variants?", o: ["item_group_id", "id", "brand", "color"], c: 0, e: "Groups sizes/colors." },
+                { t: "Showcase Shopping?", o: ["Group of products", "Single", "Text", "Video"], c: 0, e: "Brand introduction." },
+                { t: "Negatives in PMax?", o: ["Account level / Support", "Ad group", "Campaign", "Yes"], c: 0, e: "Limited control." },
+                { t: "Smart Shopping replaced by?", o: ["Performance Max", "Standard", "Discovery", "Video"], c: 0, e: "Upgrade to PMax." },
+                { t: "Condition values?", o: ["new, used, refurbished", "good, bad", "1, 2", "yes, no"], c: 0, e: "Standard values." },
+                { t: "Targeting in Standard?", o: ["Inventory filter", "Keywords", "Placements", "Topics"], c: 0, e: "Feed data targeting." },
+                { t: "Automatic Item Updates?", o: ["Sync price/availability", "Images", "Titles", "Bids"], c: 0, e: "Crawls site to fix mismatches." },
+                { t: "Website Claiming?", o: ["GMC Business Info", "Ads", "Analytics", "Hosting"], c: 0, e: "Verify ownership." },
+                { t: "Google Customer Reviews?", o: ["Post-purchase survey", "Product review", "Yelp", "Maps"], c: 0, e: "Seller ratings program." }
+            ],
+            difficult: [
+                { t: "FEED: Bundle 'is_bundle'?", o: ["Set to 'yes'", "Blank", "True", "New GTIN"], c: 0, e: "Explicitly identify custom bundles." },
+                { t: "POLICY: No SSL checkout?", o: ["Suspension", "Warning", "Low Rank", "High CPC"], c: 0, e: "Security violation = Suspension." },
+                { t: "STRATEGY: Exclude products PMax?", o: ["Listing Groups", "Negatives", "Delete", "Bid down"], c: 0, e: "Exclude in listing group filter." },
+                { t: "CSS Advantage?", o: ["~20% bid advantage", "Free", "Top slot", "None"], c: 0, e: "Margin advantage in auction." },
+                { t: "DATA: GPC vs Product Type?", o: ["GPC = Google ID; Type = Custom", "Same", "GPC optional", "Type tax"], c: 0, e: "GPC is taxonomy; Type is breadcrumb." },
+                { t: "TECHNICAL: 'mpn' vs 'gtin'?", o: ["MPN is manufacturer part number; GTIN is barcode", "Same", "GTIN is letters", "MPN is global"], c: 0, e: "GTIN is universal (UPC); MPN is specific to brand." },
+                { t: "SCENARIO: High ROAS but low volume?", o: ["Lower ROAS target", "Raise ROAS", "Budget up", "Feed fix"], c: 0, e: "Lower efficiency target to win more auctions." },
+                { t: "FEED: 'availability_date' usage?", o: ["For preorder items", "Sale start", "Restock", "Expiration"], c: 0, e: "Tells Google when preorder ships." },
+                { t: "POLICY: Watermark on image?", o: ["Disapproved", "Allowed", "Warning", "Rank drop"], c: 0, e: "Clean images required." },
+                { t: "STRATEGY: 'Catch-all' product group?", o: ["Bids on everything else", "Mistake", "High priority", "Negatives"], c: 0, e: "Ensures coverage for undefined items." },
+                { t: "METRIC: 'Click Share'?", o: ["Clicks received / achievable clicks", "CTR", "Impression share", "Rank"], c: 0, e: "Potential growth metric." },
+                { t: "FEED: 'unit_pricing_measure'?", o: ["For bulk/dimension (sq ft, ml)", "Price", "Tax", "Shipping"], c: 0, e: "Required for hardware/flooring etc." },
+                { t: "SCENARIO: Ads stopping on weekends?", o: ["Ad Schedule or Budget pacing", "Policy", "Feed error", "GMC closed"], c: 0, e: "Check campaign schedule settings." },
+                { t: "PMAX: 'Final URL expansion'?", o: ["Replaces landing page based on intent", "Changes domain", "404 error", "Redirect"], c: 0, e: "Sends user to most relevant page." },
+                { t: "GMC: 'Multi-client account' (MCA)?", o: ["Manage multiple domains/sellers", "Multiple users", "Big feed", "Agency only"], c: 0, e: "Parent account for marketplaces/agencies." },
+                { t: "FEED: 'custom_label_0' limit?", o: ["1000 unique values", "5", "100", "Unlimited"], c: 0, e: "1000 unique values per label." },
+                { t: "POLICY: Return policy requirement?", o: ["Must be clear/accessible", "Free returns", "30 days", "None"], c: 0, e: "Clear policy required for approval." },
+                { t: "BIDDING: 'Enhanced CPC' in Shopping?", o: ["Adjusts manual bid for conversion", "Auto bid", "Manual", "Fixed"], c: 0, e: "Hybrid manual/smart bidding." },
+                { t: "STRATEGY: High priority campaign vs Low?", o: ["High wins budget access", "High wins rank", "High is cheaper", "Low is backup"], c: 0, e: "Priority controls budget flow, not rank." },
+                { t: "TECHNICAL: XML Feed format?", o: ["RSS 2.0 / Atom 1.0", "HTML", "JSON", "CSV only"], c: 0, e: "Standard XML formats supported." },
+                { t: "SCENARIO: 0 Impressions, Active Feed?", o: ["Bids too low or Targeting narrow", "Suspension", "Pending", "Normal"], c: 0, e: "Check bids and location settings." },
+                { t: "GMC: 'Promotions' feed?", o: ["Separate feed for offers", "Main feed", "Ad text", "Extension"], c: 0, e: "Upload promotions separately or build in tool." },
+                { t: "METRIC: 'Absolute Top IS'?", o: ["#1 spot frequency", "Page 1", "Anywhere", "CTR"], c: 0, e: "Very first ad slot." },
+                { t: "FEED: 'sale_price_effective_date'?", o: ["Start/End of sale", "Sale price", "Today", "Launch"], c: 0, e: "Schedules the sale price." },
+                { t: "PMAX: 'Asset Group' vs Ad Group?", o: ["Asset group = PMax creative container", "Same", "No audience", "Keywords only"], c: 0, e: "PMax uses Asset Groups linked to signals." },
+                { t: "POLICY: 'Pharmaceuticals'?", o: ["Restricted/Certificate required", "Banned", "Allowed", "Open"], c: 0, e: "Highly regulated." },
+                { t: "STRATEGY: Segmenting by 'Item ID'?", o: ["Granular control per product", "Bad practice", "Category", "Brand"], c: 0, e: "Max control, high maintenance." },
+                { t: "FEED: 'adult' attribute missing on adult item?", o: ["Disapproval/Suspension", "Warning", "Okay", "Fine"], c: 0, e: "Safety violation." },
+                { t: "GMC: 'Surfaces across Google'?", o: ["Free listings (Organic)", "Paid ads", "Maps", "YouTube"], c: 0, e: "Organic shopping tab listings." },
+                { t: "TECHNICAL: Content API?", o: ["Real-time feed updates", "Manual upload", "Sheet", "FTP"], c: 0, e: "Programmatic feed management." }
+            ]
+        }
+    },
+    'analytics': {
+        name: 'Google Analytics 4',
+        questions: {
+            normal: [
+                { t: "Primary measurement unit?", o: ["Events", "Sessions", "Hits", "Bounce"], c: 0, e: "Event-based model." },
+                { t: "Metric replacing Bounce Rate?", o: ["Engagement Rate", "Exit", "Time", "Views"], c: 0, e: "Inverse of bounce." },
+                { t: "Cross-device ID?", o: ["User-ID / Google Signals", "Device ID", "IP", "Cookie"], c: 0, e: "Unifies sessions." },
+                { t: "What is a Data Stream?", o: ["Source (Web/App)", "Revenue", "Link", "Report"], c: 0, e: "Data input flow." },
+                { t: "Default attribution?", o: ["Data-driven", "Last Click", "Linear", "Time"], c: 0, e: "DDA is default." },
+                { t: "What is 'Enhanced Measurement'?", o: ["Auto-track scroll/clicks", "GTM", "Code", "Import"], c: 0, e: "No-code event tracking." },
+                { t: "Report for user journey visualization?", o: ["Explorations", "Realtime", "Admin", "Ads"], c: 0, e: "Custom funnels/paths." },
+                { t: "User Property vs Parameter?", o: ["User static trait vs Event context", "Same", "Hit level", "Date"], c: 0, e: "User Prop = Who; Param = What." },
+                { t: "Data retention (standard)?", o: ["2 or 14 months", "Unlimited", "50 mos", "1 year"], c: 0, e: "Configurable retention." },
+                { t: "BigQuery integration?", o: ["Raw data export", "Charts", "Ads", "Email"], c: 0, e: "SQL analysis." },
+                { t: "Defining conversions?", o: ["Toggle 'Mark as conversion'", "Goal setup", "Code", "Import"], c: 0, e: "Simple toggle." },
+                { t: "DebugView purpose?", o: ["Real-time testing", "Coding", "Speed", "Design"], c: 0, e: "QA tags." },
+                { t: "Filter internal traffic?", o: ["Data Settings > Filters", "View settings", "Code", "Exclude"], c: 0, e: "IP exclusion." },
+                { t: "Google Signals?", o: ["Demographics/Cross-device", "Wifi", "Speed", "Search"], c: 0, e: "Signed-in user data." },
+                { t: "Audiences usage?", o: ["Remarketing/Reporting", "Email", "Nothing", "Sales"], c: 0, e: "Segmentation & Ads." },
+                { t: "Path exploration?", o: ["Visualizes steps/flow", "Funnel", "Map", "Table"], c: 0, e: "User flow analysis." },
+                { t: "Custom Dimension scope?", o: ["Event or User", "Session", "Hit", "Product"], c: 0, e: "Scope defines application." },
+                { t: "Conversion counting?", o: ["Once per event/session", "User", "Unlimited", "None"], c: 0, e: "Counting method." },
+                { t: "Analytics Intelligence?", o: ["ML insights/trends", "Chatbot", "Support", "Email"], c: 0, e: "Automated insights." },
+                { t: "Linking Google Ads?", o: ["Admin > Product Links", "Ads UI", "Email", "Code"], c: 0, e: "Data sharing." },
+                { t: "Unassigned traffic?", o: ["Rules don't match", "Direct", "Bot", "Paid"], c: 0, e: "Unknown source." },
+                { t: "Measurement Protocol?", o: ["Offline/Server events", "Page speed", "GTM", "Cookie"], c: 0, e: "HTTP event sending." },
+                { t: "Engaged Session?", o: [">10s, conversion, or 2+ views", "Click", "Open", "Bounce"], c: 0, e: "Quality session." },
+                { t: "Cohort exploration?", o: ["Retention over time", "Funnel", "Path", "Map"], c: 0, e: "Group behavior." },
+                { t: "SKAdNetwork?", o: ["iOS attribution", "Android", "Web", "Server"], c: 0, e: "Apple privacy." },
+                { t: "Event count limit?", o: ["Unlimited volume", "500", "1 million", "100"], c: 0, e: "No hit limits." },
+                { t: "Modify Event?", o: ["Change params in UI", "Code", "GTM", "Delete"], c: 0, e: "Fix data without code." },
+                { t: "Predictive Metrics?", o: ["Purchase probability/Churn", "History", "Sales", "Clicks"], c: 0, e: "AI predictions." },
+                { t: "Library?", o: ["Customize reports menu", "Books", "Code", "Help"], c: 0, e: "Customize UI." },
+                { t: "Advertising Workspace?", o: ["Attribution/Paths", "Realtime", "Admin", "User"], c: 0, e: "ROI analysis." }
+            ],
+            difficult: [
+                { t: "CONFIG: Cross-Domain setup?", o: ["Data Streams > Tag Settings", "Filters", "GTM", "Code"], c: 0, e: "Configure domains in UI." },
+                { t: "LIMITS: Distinct event names (App)?", o: ["500", "Unlimited", "50", "1000"], c: 0, e: "Hard limit for apps." },
+                { t: "REPORTING: 'Thresholding' icon?", o: ["Google Signals + Low count", "Sampled", "Error", "Bot"], c: 0, e: "Privacy protection." },
+                { t: "BIGQUERY: Daily vs Streaming?", o: ["Daily free / Streaming cost", "Speed only", "Format", "Same"], c: 0, e: "Cost/Latency diff." },
+                { t: "SESSION: Timeout logic?", o: ["30 mins inactivity", "Midnight", "Campaign change", "Close"], c: 0, e: "Time based only." },
+                { t: "ATTRIBUTION: 'Ads-preferred' model?", o: ["Prioritizes Google Ads clicks", "Last click", "First click", "Linear"], c: 0, e: "Gives Ads credit if present." },
+                { t: "CONFIG: 'Referral Exclusion' equivalent?", o: ["List Unwanted Referrals", "Filter", "Code", "Settings"], c: 0, e: "Tag settings configuration." },
+                { t: "LIMITS: User Property limit?", o: ["25", "100", "10", "50"], c: 0, e: "25 user properties." },
+                { t: "DATA: 'Cardinality' issue?", o: ["Too many unique values -> (other)", "Too much data", "Sampling", "Error"], c: 0, e: "High cardinality aggregation." },
+                { t: "GTM: Event Model v4?", o: ["GA4 data layer structure", "UA", "Fb", "Custom"], c: 0, e: "New schema." },
+                { t: "REPORTING: Sampling in Explorations?", o: ["Occurs at 10M+ events", "Always", "Never", "100k"], c: 0, e: "Quota limits apply." },
+                { t: "CONFIG: 'Consent Mode'?", o: ["Adjusts behavior based on cookie consent", "Bans users", "Pop-up", "Legal"], c: 0, e: "Privacy compliance modeling." },
+                { t: "METRIC: 'LTV' calculation?", o: ["Total rev from user since acquisition", "Last month", "Session", "Year"], c: 0, e: "Lifetime Value." },
+                { t: "SCENARIO: Discrepancy Ads vs GA4?", o: ["Attribution window/model differences", "Error", "Broken", "Fraud"], c: 0, e: "Common due to diff logic." },
+                { t: "CONFIG: 'Data Redaction'?", o: ["Remove PII/Query params", "Delete data", "Filter IP", "Hide"], c: 0, e: "Privacy clean-up." },
+                { t: "API: Quota limits?", o: ["Concurrent requests / Hourly tokens", "Unlimited", "Daily only", "Paid"], c: 0, e: "Looker Studio often hits this." },
+                { t: "CONFIG: 'Granular Location Data'?", o: ["Toggle to disable GPS collection", "Map", "Accuracy", "City"], c: 0, e: "Privacy setting." },
+                { t: "REPORTING: 'Purchase' event special?", o: ["Auto-marked conversion", "Nothing", "Revenue", "Manual"], c: 0, e: "Hardcoded conversion." },
+                { t: "SCENARIO: User-ID implementation?", o: ["Send ID in config/event", "Auto", "Cookie", "Login"], c: 0, e: "Must verify login." },
+                { t: "DATA: 'Item-scoped' dimensions?", o: ["Product attributes (Brand, Cat)", "User", "Event", "Session"], c: 0, e: "Ecommerce specifics." },
+                { t: "CONFIG: Change session timeout?", o: ["Tag Settings > Session Timeout", "Admin", "Code", "Cannot"], c: 0, e: "Extendable to 7h 55m." },
+                { t: "LIMITS: Conversion events per property?", o: ["30", "20", "50", "100"], c: 0, e: "Standard limit." },
+                { t: "SCENARIO: 'Not Set' in Landing Page?", o: ["Session started without page_view (e.g. app background)", "Error", "Bot", "Direct"], c: 0, e: "Technical gap." },
+                { t: "INTEGRATION: DV360 link?", o: ["Enterprise (360) only or specific permissions", "Standard", "Anyone", "No"], c: 0, e: "Advanced integration." },
+                { t: "METRIC: 'Active Users' definition?", o: ["Engaged session or first_visit", "Any hit", "10s", "Return"], c: 0, e: "Primary user metric." },
+                { t: "CONFIG: 'Override cookie settings'?", o: ["Change expiry/update behavior", "Delete", "Block", "Accept"], c: 0, e: "Advanced tag config." },
+                { t: "DATA: 'Rolling' retention?", o: ["Reset timer on new activity", "Fixed", "Delete", "Archive"], c: 0, e: "User data expiry." },
+                { t: "REPORTING: Identity Space priority?", o: ["User-ID > Google Signals > Device > Modeling", "Device first", "Signals only", "ID only"], c: 0, e: "Waterfall logic." },
+                { t: "SCENARIO: Server-side GTM benefit?", o: ["Data control/Cookie life/Speed", "Cheaper", "Easier", "Visual"], c: 0, e: "1st party context." },
+                { t: "CONFIG: 'Timezone' impact?", o: ["Affects daily boundaries", "Nothing", "User view", "Server"], c: 0, e: "Day start/end." }
+            ]
+        }
+    }
+};
+
+// STATE
+const state = {
+    selectedCert: null,
+    selectedDiff: null, // 'normal' or 'difficult'
+    questionSet: [], 
+    userAnswers: [], 
+    currentIdx: 0,
+    examLength: 0
+};
+
+// DOM ELEMENTS
+const screens = {
+    selection: document.getElementById('selection-screen'),
+    exam: document.getElementById('exam-screen'),
+    result: document.getElementById('result-screen')
+};
+const els = {
+    catGrid: document.getElementById('category-grid'),
+    qText: document.getElementById('question-text'),
+    optsContainer: document.getElementById('options-container'),
+    feedbackBox: document.getElementById('feedback-box'),
+    qCount: document.getElementById('question-count'),
+    certLabel: document.getElementById('cert-label'),
+    diffLabel: document.getElementById('diff-label'),
+    prevBtn: document.getElementById('prev-btn'),
+    nextBtn: document.getElementById('next-btn'),
+    finishBtn: document.getElementById('finish-btn'),
+    progress: document.getElementById('progress-fill'),
+    scoreCircle: document.getElementById('score-circle'),
+    scoreFraction: document.getElementById('score-fraction'),
+    resultMsg: document.getElementById('result-message'),
+    diffResultLabel: document.getElementById('diff-result-label'),
+    homeBtn: document.getElementById('home-btn')
+};
+
+// UTILS
+function shuffleArray(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function switchScreen(name) {
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+    window.scrollTo(0,0);
+}
+
+// INITIALIZATION
+function init() {
+    els.catGrid.innerHTML = Object.keys(questionData).map(key => {
+        const cert = questionData[key];
+        return `
+        <div class="category-card">
+            <div class="cat-title">${cert.name}</div>
+            <div class="cat-meta">
+                ${cert.questions.normal.length} Normal • ${cert.questions.difficult.length} Difficult
+            </div>
+            <div class="mode-buttons">
+                <button class="mode-btn mode-normal" onclick="startExam('${key}', 'normal')">Normal</button>
+                <button class="mode-btn mode-difficult" onclick="startExam('${key}', 'difficult')">Difficult</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+window.startExam = function(certKey, difficulty) {
+    state.selectedCert = certKey;
+    state.selectedDiff = difficulty;
+    
+    // Get questions based on difficulty
+    const rawQuestions = questionData[certKey].questions[difficulty];
+    
+    // Shuffle Pool
+    const shuffledPool = shuffleArray([...rawQuestions]);
+    
+    // Select all (or cap if needed, currently taking all defined)
+    state.questionSet = shuffledPool.map(q => {
+        let indices = Array.from(Array(q.o.length).keys()); 
+        indices = shuffleArray(indices);
+        return {
+            text: q.t,
+            options: indices.map(i => q.o[i]),
+            correctIndex: indices.indexOf(q.c),
+            explanation: q.e
+        };
+    });
+    
+    state.currentIdx = 0;
+    state.userAnswers = new Array(state.questionSet.length).fill(null);
+    state.examLength = state.questionSet.length;
+    
+    switchScreen('exam');
+    renderQuestion();
+};
+
+function renderQuestion() {
+    const q = state.questionSet[state.currentIdx];
+    const isAnswered = state.userAnswers[state.currentIdx] !== null;
+    const isDiff = state.selectedDiff === 'difficult';
+    
+    // Reset UI
+    els.feedbackBox.style.display = 'none';
+    els.feedbackBox.className = 'feedback-box';
+
+    // Update Meta
+    els.certLabel.innerText = questionData[state.selectedCert].name;
+    els.diffLabel.innerHTML = `<span class="diff-tag">${state.selectedDiff.toUpperCase()}</span>`;
+    els.qCount.innerText = `Question ${state.currentIdx + 1} of ${state.examLength}`;
+    
+    // Progress Bar Style
+    els.progress.className = `progress-fill ${isDiff ? 'difficult' : ''}`;
+    els.progress.style.width = `${((state.currentIdx + 1) / state.examLength) * 100}%`;
+    
+    // Text
+    els.qText.innerText = q.text;
+    
+    // Options
+    els.optsContainer.innerHTML = q.options.map((opt, i) => {
+        let classes = 'option-label';
+        let checked = '';
+        
+        if (isAnswered) {
+            classes += ' disabled';
+            if (i === q.correctIndex) classes += ' correct';
+            if (state.userAnswers[state.currentIdx] === i && i !== q.correctIndex) classes += ' wrong';
+            if (state.userAnswers[state.currentIdx] === i) checked = 'checked';
+        }
+
+        return `
+        <label class="${classes}">
+            <input type="radio" name="opt" class="option-input" value="${i}" 
+                ${checked} 
+                ${isAnswered ? 'disabled' : ''}
+                onchange="handleSelection(${i})">
+            <span>${opt}</span>
+        </label>`
+    }).join('');
+    
+    if(isAnswered) showFeedback(state.userAnswers[state.currentIdx]);
+
+    // Buttons
+    els.prevBtn.disabled = state.currentIdx === 0;
+    
+    if (state.currentIdx === state.examLength - 1) {
+        els.nextBtn.classList.add('hidden');
+        els.finishBtn.classList.remove('hidden');
+    } else {
+        els.nextBtn.classList.remove('hidden');
+        els.finishBtn.classList.add('hidden');
+    }
+}
+
+window.handleSelection = function(i) {
+    state.userAnswers[state.currentIdx] = i;
+    renderQuestion(); // Re-render to show colors lock
+    showFeedback(i);
+};
+
+function showFeedback(userIndex) {
+    const q = state.questionSet[state.currentIdx];
+    const isCorrect = userIndex === q.correctIndex;
+
+    els.feedbackBox.innerHTML = `
+        <span class="feedback-title">${isCorrect ? '✅ Correct' : '❌ Incorrect'}</span>
+        ${q.explanation}
+    `;
+    els.feedbackBox.className = `feedback-box ${isCorrect ? 'correct' : 'wrong'}`;
+    els.feedbackBox.style.display = 'block';
+}
+
+// NAV
+els.prevBtn.addEventListener('click', () => {
+    if (state.currentIdx > 0) { state.currentIdx--; renderQuestion(); }
+});
+els.nextBtn.addEventListener('click', () => {
+    if (state.currentIdx < state.examLength - 1) { state.currentIdx++; renderQuestion(); }
+});
+els.finishBtn.addEventListener('click', calculateResults);
+
+// SCORING
+function calculateResults() {
+    let score = 0;
+    state.questionSet.forEach((q, i) => {
+        if (state.userAnswers[i] === q.correctIndex) score++;
+    });
+    
+    const pct = Math.round((score / state.examLength) * 100);
+    const passed = pct >= 80;
+    
+    els.scoreCircle.innerText = `${pct}%`;
+    els.scoreCircle.className = `score-circle ${passed ? 'pass' : 'fail'}`;
+    els.scoreFraction.innerText = `${score}/${state.examLength}`;
+    
+    const difficultyText = state.selectedDiff === 'difficult' ? "Advanced" : "Standard";
+    els.diffResultLabel.innerText = `Mode: ${difficultyText}`;
+
+    els.resultMsg.innerText = passed ? "Congratulations! You Passed." : "Keep Studying. You didn't pass.";
+    els.resultMsg.style.color = passed ? "var(--success)" : "var(--danger)";
+    
+    switchScreen('result');
+}
+
+els.homeBtn.addEventListener('click', () => {
+    switchScreen('selection');
+    state.selectedCert = null;
+});
+
+init();
+
+</script>
+</body>
+</html>

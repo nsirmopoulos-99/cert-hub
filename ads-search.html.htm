@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Ads Search Certification: The Master Class</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #374151; }
+        .nav-item.active { background-color: #e8f0fe; color: #1a73e8; border-right: 3px solid #1a73e8; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        /* Custom scrollbar for sidebar */
+        aside::-webkit-scrollbar { width: 6px; }
+        aside::-webkit-scrollbar-track { background: transparent; }
+        aside::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+    <!-- Chosen Palette: Google Material-inspired Clean Theme. Background: Warm Neutral (#f8f9fa). Primary: Google Blue (#1a73e8). Accents: Green (#34a853), Red (#ea4335), Yellow (#fbbc04). Text: Dark Grey (#374151). -->
+    
+    <!-- Application Structure Plan: 
+         The app is designed as an "Interactive Certification Dashboard". 
+         Instead of linear reading, users navigate through 5 logical modules (tabs) on the left sidebar:
+         1. "Auction & Rank": Interactive simulator to understand the Ad Rank formula (Bid vs. QS). 
+         2. "Structure & Keywords": Visual hierarchy builder and Match Type logic explorer.
+         3. "Bidding Lab": Decision-tree style interaction to select the right Smart Bidding strategy.
+         4. "Ads & Quality": Visual breakdown of Ad Strength and Quality Score components.
+         5. "Exam Room": Summary of traps, philosophies, and key takeaways for the test.
+         Why? This structure breaks complex theory into active "lab" environments, encouraging 'doing' rather than just reading.
+    -->
+    
+    <!-- Visualization & Content Choices:
+         1. Ad Rank Simulator (Bar Chart): Shows how a lower bid can beat a higher bid with better QS. Goal: Demystify the auction.
+         2. Interactive Hierarchy Tree (HTML/CSS): Visualizes Account -> Campaign -> Ad Group -> Keyword. Goal: Clarify structure.
+         3. Match Type Filter (JS Filters): User toggles match types to see resulting query matches. Goal: Explain intent vs. syntax.
+         4. Bidding Strategy Quadrant (Interactive Grid): Maps goals (Traffic, ROI, Conversions) to strategies. Goal: Decision making framework.
+         5. Quality Score Radar (Chart.js Radar - Conceptual): Visualizes the 3 components balance. Goal: Show multi-factor nature of QS.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex-shrink-0 hidden md:flex flex-col z-20">
+        <div class="p-6 border-b border-gray-100">
+            <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <span class="text-3xl text-blue-600">&#9679;</span> G-Ads Master
+            </h1>
+            <p class="text-xs text-gray-500 mt-1 uppercase tracking-wide">Certification Prep</p>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li><button onclick="nav('intro')" id="nav-intro" class="nav-item w-full text-left px-6 py-3 hover:bg-gray-50 transition-colors font-medium text-sm active">1. Auction & Rank</button></li>
+                <li><button onclick="nav('structure')" id="nav-structure" class="nav-item w-full text-left px-6 py-3 hover:bg-gray-50 transition-colors font-medium text-sm">2. Structure & Keywords</button></li>
+                <li><button onclick="nav('bidding')" id="nav-bidding" class="nav-item w-full text-left px-6 py-3 hover:bg-gray-50 transition-colors font-medium text-sm">3. Bidding Strategies</button></li>
+                <li><button onclick="nav('creative')" id="nav-creative" class="nav-item w-full text-left px-6 py-3 hover:bg-gray-50 transition-colors font-medium text-sm">4. Ads & Quality Score</button></li>
+                <li><button onclick="nav('exam')" id="nav-exam" class="nav-item w-full text-left px-6 py-3 hover:bg-gray-50 transition-colors font-medium text-sm">5. Exam Strategy & Tips</button></li>
+            </ul>
+        </nav>
+        <div class="p-4 border-t border-gray-100 bg-gray-50">
+            <div class="text-xs text-gray-500">Instructor: Senior Expert</div>
+            <div class="text-xs font-semibold text-blue-600">Goal: Certification Pass</div>
+        </div>
+    </aside>
+
+    <!-- Mobile Nav Header -->
+    <div class="md:hidden fixed top-0 w-full bg-white border-b z-30 flex items-center justify-between p-4 shadow-sm">
+        <h1 class="text-lg font-bold text-gray-800">G-Ads Master</h1>
+        <button id="mobile-menu-btn" class="text-gray-600 focus:outline-none text-2xl">&#9776;</button>
+    </div>
+    
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-white z-40 hidden flex-col pt-16 p-6 space-y-4 md:hidden">
+        <button onclick="nav('intro'); toggleMobile()" class="text-lg font-medium text-gray-700 py-2 border-b">1. Auction & Rank</button>
+        <button onclick="nav('structure'); toggleMobile()" class="text-lg font-medium text-gray-700 py-2 border-b">2. Structure & Keywords</button>
+        <button onclick="nav('bidding'); toggleMobile()" class="text-lg font-medium text-gray-700 py-2 border-b">3. Bidding Strategies</button>
+        <button onclick="nav('creative'); toggleMobile()" class="text-lg font-medium text-gray-700 py-2 border-b">4. Ads & Quality Score</button>
+        <button onclick="nav('exam'); toggleMobile()" class="text-lg font-medium text-gray-700 py-2 border-b">5. Exam Strategy & Tips</button>
+        <button onclick="toggleMobile()" class="mt-4 text-blue-600 font-bold">Close Menu</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 pt-20 md:pt-8 bg-gray-50 relative">
+        
+        <!-- MODULE 1: AUCTION & RANK -->
+        <section id="section-intro" class="fade-in max-w-5xl mx-auto space-y-8">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">The Auction & Ad Rank</h2>
+                <p class="mt-2 text-lg text-gray-600">Understand the core mechanics: Why the highest bidder doesn't always win.</p>
+            </header>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">How the Auction Works</h3>
+                <p class="text-gray-600 mb-6">Every time a search happens, an auction runs. Google determines if your ad shows and where. The key metric is <strong>Ad Rank</strong>.</p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    <!-- Simulator Controls -->
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                        <h4 class="font-bold text-blue-800 mb-4 flex items-center gap-2">
+                            <span>&#9881;</span> Ad Rank Simulator
+                        </h4>
+                        <p class="text-sm text-blue-600 mb-4">Adjust bids and Quality Scores (QS) to see who wins position #1.</p>
+                        
+                        <div class="space-y-6">
+                            <!-- Advertiser A -->
+                            <div class="bg-white p-4 rounded shadow-sm">
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-bold text-gray-700">Advertiser A</span>
+                                    <span class="text-sm text-gray-500">High Bidder</span>
+                                </div>
+                                <div class="flex gap-4 items-center">
+                                    <div class="w-1/2">
+                                        <label class="block text-xs font-semibold text-gray-500">Bid ($)</label>
+                                        <input type="number" id="bid-a" value="5.00" step="0.50" class="w-full border rounded px-2 py-1 text-sm">
+                                    </div>
+                                    <div class="w-1/2">
+                                        <label class="block text-xs font-semibold text-gray-500">Quality Score (1-10)</label>
+                                        <input type="range" id="qs-a" min="1" max="10" value="3" class="w-full accent-blue-600">
+                                        <div class="text-right text-xs font-bold text-blue-600" id="qs-a-val">3</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Advertiser B -->
+                            <div class="bg-white p-4 rounded shadow-sm border-l-4 border-green-500">
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-bold text-gray-700">You (Advertiser B)</span>
+                                    <span class="text-sm text-gray-500">Smart Optimizer</span>
+                                </div>
+                                <div class="flex gap-4 items-center">
+                                    <div class="w-1/2">
+                                        <label class="block text-xs font-semibold text-gray-500">Bid ($)</label>
+                                        <input type="number" id="bid-b" value="3.00" step="0.50" class="w-full border rounded px-2 py-1 text-sm">
+                                    </div>
+                                    <div class="w-1/2">
+                                        <label class="block text-xs font-semibold text-gray-500">Quality Score (1-10)</label>
+                                        <input type="range" id="qs-b" min="1" max="10" value="9" class="w-full accent-green-600">
+                                        <div class="text-right text-xs font-bold text-green-600" id="qs-b-val">9</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="updateAdRankChart()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition font-medium">Calculate Ad Rank</button>
+                        </div>
+                    </div>
+
+                    <!-- Simulator Chart -->
+                    <div>
+                        <div class="chart-container">
+                            <canvas id="adRankChart"></canvas>
+                        </div>
+                        <div class="mt-4 bg-yellow-50 border border-yellow-200 p-4 rounded text-sm text-yellow-800">
+                            <strong>The Formula:</strong><br>
+                            <code class="text-red-600 font-bold">Ad Rank = Bid × Quality Score</code><br>
+                            <span class="text-xs italic">(+ expected impact of ad assets)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 card-hover">
+                    <div class="text-2xl mb-2 text-blue-500">&#128178;</div>
+                    <h4 class="font-bold text-gray-800">CPC</h4>
+                    <p class="text-sm text-gray-600">Cost-Per-Click. What you actually pay. Often less than your max bid if your QS is high.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 card-hover">
+                    <div class="text-2xl mb-2 text-green-500">&#128065;</div>
+                    <h4 class="font-bold text-gray-800">CTR</h4>
+                    <p class="text-sm text-gray-600">Click-Through Rate. (Clicks ÷ Impressions) × 100. The primary measure of ad relevance.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 card-hover">
+                    <div class="text-2xl mb-2 text-purple-500">&#127942;</div>
+                    <h4 class="font-bold text-gray-800">Quality Score</h4>
+                    <p class="text-sm text-gray-600">Diagnostic tool (1-10). Based on Exp. CTR, Ad Relevance, and Landing Page Exp.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 2: STRUCTURE & KEYWORDS -->
+        <section id="section-structure" class="hidden fade-in max-w-5xl mx-auto space-y-8">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Structure & Keyword Strategy</h2>
+                <p class="mt-2 text-lg text-gray-600">Building a logical account hierarchy and mastering intent matching.</p>
+            </header>
+
+            <!-- Interactive Hierarchy Visualizer -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+                <h3 class="text-xl font-semibold mb-6 text-gray-800">The Golden Hierarchy</h3>
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="md:w-1/3 space-y-4">
+                        <div class="p-4 bg-gray-800 text-white rounded-lg shadow-md border-l-4 border-blue-500">
+                            <h4 class="font-bold">1. Account</h4>
+                            <p class="text-xs text-gray-300 mt-1">Unique Email, Billing, Password.</p>
+                        </div>
+                        <div class="ml-4 p-4 bg-gray-700 text-white rounded-lg shadow-md border-l-4 border-green-500">
+                            <h4 class="font-bold">2. Campaign</h4>
+                            <p class="text-xs text-gray-300 mt-1">Budget, Location, Language, Bidding Strategy.</p>
+                            <span class="block mt-2 text-xs bg-yellow-600 text-white px-2 py-1 rounded inline-block">⚠️ Exam Tip: Budgets sit here!</span>
+                        </div>
+                        <div class="ml-8 p-4 bg-gray-600 text-white rounded-lg shadow-md border-l-4 border-purple-500">
+                            <h4 class="font-bold">3. Ad Group</h4>
+                            <p class="text-xs text-gray-300 mt-1">Themes, Keywords, Ads.</p>
+                        </div>
+                    </div>
+                    <div class="md:w-2/3 bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-gray-800 mb-4">Structure Best Practices</h4>
+                        <ul class="space-y-3 text-sm text-gray-700">
+                            <li class="flex items-start gap-3">
+                                <span class="text-green-500 font-bold">&#10003;</span>
+                                <span><strong>Mirror Your Website:</strong> If your site has separate pages for "Running Shoes" and "Hiking Boots", create separate Campaigns or Ad Groups for them.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="text-green-500 font-bold">&#10003;</span>
+                                <span><strong>Thematic Grouping:</strong> Tightly theme Ad Groups so the ad copy directly relates to the keywords within it.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="text-red-500 font-bold">&#10007;</span>
+                                <span><strong>Don't:</strong> Create a separate campaign for every single keyword (unless specialized). It fragments data.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Match Type Explorer -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">Match Type Lab</h3>
+                <p class="text-gray-600 mb-6">Select a match type to see how it filters queries for the keyword: <span class="font-mono bg-gray-100 px-2 py-1 rounded">women's hats</span></p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button onclick="setMatchType('broad')" id="btn-broad" class="p-4 rounded border-2 border-blue-500 bg-blue-50 text-blue-700 font-bold transition">
+                        Broad Match<br><span class="text-xs font-normal">keyword</span>
+                    </button>
+                    <button onclick="setMatchType('phrase')" id="btn-phrase" class="p-4 rounded border-2 border-gray-200 hover:border-blue-300 text-gray-600 font-bold transition">
+                        Phrase Match<br><span class="text-xs font-normal">"keyword"</span>
+                    </button>
+                    <button onclick="setMatchType('exact')" id="btn-exact" class="p-4 rounded border-2 border-gray-200 hover:border-blue-300 text-gray-600 font-bold transition">
+                        Exact Match<br><span class="text-xs font-normal">[keyword]</span>
+                    </button>
+                </div>
+
+                <div class="bg-gray-900 text-green-400 p-6 rounded-lg font-mono text-sm shadow-inner min-h-[160px]">
+                    <div class="border-b border-gray-700 pb-2 mb-2 text-gray-500 uppercase text-xs tracking-wider">Search Query Log</div>
+                    <ul id="query-log" class="space-y-2">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+                
+                <div class="mt-4 p-4 bg-yellow-50 rounded border border-yellow-200 text-sm text-yellow-800">
+                    <strong>Strategy Note:</strong> The exam favors <strong>Broad Match + Smart Bidding</strong>. Broad match captures reach; Smart Bidding filters for conversion intent.
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 3: BIDDING -->
+        <section id="section-bidding" class="hidden fade-in max-w-5xl mx-auto space-y-8">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Bidding Strategies</h2>
+                <p class="mt-2 text-lg text-gray-600">Manual vs. Smart Bidding. Choosing the right automation for your goal.</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Manual vs Smart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800">Manual vs. Smart</h3>
+                    <div class="space-y-4">
+                        <div class="p-4 border border-gray-200 rounded hover:bg-gray-50 transition">
+                            <h4 class="font-bold text-gray-700">Manual CPC</h4>
+                            <p class="text-sm text-gray-600 mt-1">You set max cost per click. Good for control, bad for efficiency. Does not react to real-time signals.</p>
+                        </div>
+                        <div class="p-4 border border-blue-200 bg-blue-50 rounded">
+                            <h4 class="font-bold text-blue-800">Smart Bidding (Auction-Time)</h4>
+                            <p class="text-sm text-blue-700 mt-1">Uses machine learning to optimize for conversions in <em>every single auction</em>. Requires Conversion Tracking.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Selector -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800">What is your primary goal?</h3>
+                    <p class="text-sm text-gray-500 mb-4">Click a goal to see the recommended Smart Bidding strategy.</p>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="showStrategy('clicks')" class="p-3 text-sm font-medium bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 rounded transition text-center">Traffic / Awareness</button>
+                        <button onclick="showStrategy('conversions')" class="p-3 text-sm font-medium bg-gray-100 hover:bg-green-100 hover:text-green-700 rounded transition text-center">Sales Volume</button>
+                        <button onclick="showStrategy('cpa')" class="p-3 text-sm font-medium bg-gray-100 hover:bg-orange-100 hover:text-orange-700 rounded transition text-center">Efficiency (Cost Control)</button>
+                        <button onclick="showStrategy('roas')" class="p-3 text-sm font-medium bg-gray-100 hover:bg-purple-100 hover:text-purple-700 rounded transition text-center">ROI / Revenue</button>
+                    </div>
+
+                    <div id="strategy-display" class="mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-inner min-h-[120px] flex items-center justify-center text-center">
+                        <span class="text-gray-400 italic">Select a goal above...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bidding Visual -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="font-bold text-lg mb-4 text-gray-800">The Maturity Curve</h3>
+                <div class="chart-container">
+                    <canvas id="biddingChart"></canvas>
+                </div>
+                <p class="text-center text-sm text-gray-500 mt-4">Moving from Max Clicks -> Target ROAS is considered "maturing" the account.</p>
+            </div>
+        </section>
+
+        <!-- MODULE 4: ADS & QUALITY -->
+        <section id="section-creative" class="hidden fade-in max-w-5xl mx-auto space-y-8">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Ads & Quality Score</h2>
+                <p class="mt-2 text-lg text-gray-600">Creating Responsive Search Ads (RSAs) and optimizing for relevance.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- RSA Builder Concept -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Responsive Search Ads (RSA)</h3>
+                    <p class="text-sm text-gray-600 mb-4">Google mixes assets to find the best combo. Don't "Pin" assets unless legally required.</p>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs font-bold">Headlines</div>
+                            <span class="text-sm text-gray-600">Provide up to 15 (Min 3)</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-green-100 text-green-800 px-3 py-1 rounded text-xs font-bold">Descriptions</div>
+                            <span class="text-sm text-gray-600">Provide up to 4 (Min 2)</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                        <h4 class="text-sm font-bold text-gray-700 mb-2">Ad Strength Drivers:</h4>
+                        <ul class="text-sm space-y-2">
+                            <li class="flex items-center gap-2"><span class="text-green-500">&#10003;</span> Relevance (Matches keywords?)</li>
+                            <li class="flex items-center gap-2"><span class="text-green-500">&#10003;</span> Quantity (Used all slots?)</li>
+                            <li class="flex items-center gap-2"><span class="text-green-500">&#10003;</span> Diversity (Are headlines distinct?)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Quality Score Radar -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Quality Score Components</h3>
+                    <div class="chart-container">
+                        <canvas id="qsRadarChart"></canvas>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mt-4 text-center text-xs">
+                        <div class="p-2 bg-blue-50 rounded">
+                            <div class="font-bold text-blue-700">Exp. CTR</div>
+                            <div class="text-gray-500">Likelihood of click</div>
+                        </div>
+                        <div class="p-2 bg-red-50 rounded">
+                            <div class="font-bold text-red-700">Ad Relevance</div>
+                            <div class="text-gray-500">Matches intent?</div>
+                        </div>
+                        <div class="p-2 bg-yellow-50 rounded">
+                            <div class="font-bold text-yellow-700">Landing Page</div>
+                            <div class="text-gray-500">Fast & Honest</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assets -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">Ad Assets (Extensions)</h3>
+                <p class="text-sm text-gray-600 mb-4">Assets are <strong>critical for Ad Rank</strong>. Always add at least 4 Sitelinks.</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="p-3 border rounded text-center hover:bg-gray-50">
+                        <div class="font-bold text-gray-800">Sitelinks</div>
+                        <div class="text-xs text-gray-500">Direct links to pages</div>
+                    </div>
+                    <div class="p-3 border rounded text-center hover:bg-gray-50">
+                        <div class="font-bold text-gray-800">Callouts</div>
+                        <div class="text-xs text-gray-500">USPs (Free Shipping)</div>
+                    </div>
+                    <div class="p-3 border rounded text-center hover:bg-gray-50">
+                        <div class="font-bold text-gray-800">Snippets</div>
+                        <div class="text-xs text-gray-500">Headers (Brands, Types)</div>
+                    </div>
+                    <div class="p-3 border rounded text-center hover:bg-gray-50">
+                        <div class="font-bold text-gray-800">Call</div>
+                        <div class="text-xs text-gray-500">Phone Number</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 5: EXAM PREP -->
+        <section id="section-exam" class="hidden fade-in max-w-5xl mx-auto space-y-8">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Exam Strategy & Tips</h2>
+                <p class="mt-2 text-lg text-gray-600">Key philosophies and common traps to pass the certification.</p>
+            </header>
+
+            <!-- Philosophies -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-8 text-white shadow-lg mb-8">
+                <h3 class="text-2xl font-bold mb-6">The 4 Core Philosophies</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white/10 p-4 rounded backdrop-blur-sm">
+                        <h4 class="font-bold text-yellow-300 mb-1">1. Automation is King</h4>
+                        <p class="text-sm opacity-90">If an answer mentions Smart Bidding, Broad Match, or RSAs, it's likely correct.</p>
+                    </div>
+                    <div class="bg-white/10 p-4 rounded backdrop-blur-sm">
+                        <h4 class="font-bold text-yellow-300 mb-1">2. Relevance > Revenue</h4>
+                        <p class="text-sm opacity-90">Google prioritizes user experience. High bids can't fix bad relevance.</p>
+                    </div>
+                    <div class="bg-white/10 p-4 rounded backdrop-blur-sm">
+                        <h4 class="font-bold text-yellow-300 mb-1">3. Value-Based Bidding</h4>
+                        <p class="text-sm opacity-90">Maximize Conversions is good; Target ROAS is better (more mature).</p>
+                    </div>
+                    <div class="bg-white/10 p-4 rounded backdrop-blur-sm">
+                        <h4 class="font-bold text-yellow-300 mb-1">4. Integration</h4>
+                        <p class="text-sm opacity-90">Link Google Ads to GA4 and Google Business Profile for best results.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Traps -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+                <h3 class="text-xl font-semibold mb-6 text-gray-800">Avoid These Traps ⚠️</h3>
+                
+                <div class="space-y-4">
+                    <details class="group p-4 bg-red-50 border border-red-100 rounded-lg cursor-pointer">
+                        <summary class="font-bold text-red-800 flex justify-between items-center">
+                            Trap: "Create a separate campaign for every keyword."
+                            <span class="transform group-open:rotate-180 transition-transform text-red-600">&#9660;</span>
+                        </summary>
+                        <p class="mt-3 text-sm text-gray-700 pl-4 border-l-2 border-red-300">
+                            <strong>Correction:</strong> Group keywords thematically in Ad Groups. Fragmentation hurts machine learning data density.
+                        </p>
+                    </details>
+
+                    <details class="group p-4 bg-red-50 border border-red-100 rounded-lg cursor-pointer">
+                        <summary class="font-bold text-red-800 flex justify-between items-center">
+                            Trap: "Quality Score determines the auction winner."
+                            <span class="transform group-open:rotate-180 transition-transform text-red-600">&#9660;</span>
+                        </summary>
+                        <p class="mt-3 text-sm text-gray-700 pl-4 border-l-2 border-red-300">
+                            <strong>Correction:</strong> <em>Ad Rank</em> determines the winner. Quality Score is just a diagnostic tool (1-10) used to help calculate Ad Rank.
+                        </p>
+                    </details>
+
+                    <details class="group p-4 bg-red-50 border border-red-100 rounded-lg cursor-pointer">
+                        <summary class="font-bold text-red-800 flex justify-between items-center">
+                            Trap: "Targeting vs. Observation."
+                            <span class="transform group-open:rotate-180 transition-transform text-red-600">&#9660;</span>
+                        </summary>
+                        <p class="mt-3 text-sm text-gray-700 pl-4 border-l-2 border-red-300">
+                            <strong>Correction:</strong> <br>
+                            - <strong>Targeting:</strong> "Show ads ONLY to this audience."<br>
+                            - <strong>Observation:</strong> "Show to everyone, but track this audience separately (and bid adjust)."
+                        </p>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- Navigation Logic ---
+        function nav(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            // Show target section
+            document.getElementById('section-' + sectionId).classList.remove('hidden');
+            
+            // Update Sidebar Active State
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active', 'bg-gray-50', 'text-blue-600', 'border-r-3', 'border-blue-600');
+                el.classList.add('text-gray-600');
+            });
+            const activeBtn = document.getElementById('nav-' + sectionId);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            // Scroll to top
+            document.querySelector('main').scrollTop = 0;
+        }
+
+        function toggleMobile() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        }
+
+        // --- Ad Rank Simulator (Chart.js) ---
+        let adRankChartCtx = document.getElementById('adRankChart').getContext('2d');
+        let adRankChart = new Chart(adRankChartCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Advertiser A (High Bid)', 'You (Optimizer)', 'Advertiser C (Low QS)'],
+                datasets: [{
+                    label: 'Ad Rank Score',
+                    data: [15, 27, 8], // Initial values
+                    backgroundColor: ['#9ca3af', '#34a853', '#9ca3af'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Ad Rank' } }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                return "Higher is better";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateAdRankChart() {
+            const bidA = parseFloat(document.getElementById('bid-a').value) || 0;
+            const qsA = parseInt(document.getElementById('qs-a').value) || 1;
+            const bidB = parseFloat(document.getElementById('bid-b').value) || 0;
+            const qsB = parseInt(document.getElementById('qs-b').value) || 1;
+            
+            // Static Competitor C
+            const bidC = 8.00; 
+            const qsC = 1;
+
+            const rankA = bidA * qsA;
+            const rankB = bidB * qsB;
+            const rankC = bidC * qsC;
+
+            // Update UI Labels
+            document.getElementById('qs-a-val').innerText = qsA;
+            document.getElementById('qs-b-val').innerText = qsB;
+
+            // Update Chart Data
+            adRankChart.data.datasets[0].data = [rankA, rankB, rankC];
+            
+            // Dynamic Coloring: Highlight the winner
+            const maxRank = Math.max(rankA, rankB, rankC);
+            const colors = adRankChart.data.datasets[0].data.map(val => val === maxRank ? '#34a853' : '#9ca3af');
+            adRankChart.data.datasets[0].backgroundColor = colors;
+            
+            adRankChart.update();
+        }
+
+        // Listeners for sliders
+        ['qs-a', 'qs-b'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateAdRankChart);
+        });
+
+        // --- Match Type Explorer ---
+        const queryDatabase = [
+            { q: "women's hats", type: ['broad', 'phrase', 'exact'] },
+            { q: "buy ladies hats", type: ['broad'] },
+            { q: "blue women's hats", type: ['broad', 'phrase'] },
+            { q: "hats for women", type: ['broad', 'exact'] },
+            { q: "girls hats", type: [] }, // Negative or irrelevant
+            { q: "clothing for women", type: ['broad'] },
+            { q: "buy women's hats for sale", type: ['broad', 'phrase'] }
+        ];
+
+        function setMatchType(type) {
+            // Update buttons
+            ['broad', 'phrase', 'exact'].forEach(t => {
+                const btn = document.getElementById('btn-' + t);
+                if (t === type) {
+                    btn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700');
+                    btn.classList.remove('border-gray-200', 'text-gray-600');
+                } else {
+                    btn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700');
+                    btn.classList.add('border-gray-200', 'text-gray-600');
+                }
+            });
+
+            // Update List
+            const list = document.getElementById('query-log');
+            list.innerHTML = '';
+            
+            queryDatabase.forEach(item => {
+                const isMatch = item.type.includes(type);
+                const li = document.createElement('li');
+                li.className = isMatch ? 'flex items-center gap-2 text-green-400' : 'flex items-center gap-2 text-gray-600 opacity-50';
+                li.innerHTML = `
+                    <span class="${isMatch ? 'text-green-500' : 'text-red-500'} font-bold w-6 text-center">${isMatch ? '✓' : '✗'}</span>
+                    <span>${item.q}</span>
+                    ${isMatch ? '<span class="text-xs border border-green-800 bg-green-900 px-1 rounded ml-auto">Matched</span>' : ''}
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // --- Bidding Strategy Logic ---
+        function showStrategy(goal) {
+            const display = document.getElementById('strategy-display');
+            let content = '';
+            
+            switch(goal) {
+                case 'clicks':
+                    content = `
+                        <div>
+                            <h4 class="font-bold text-indigo-700 text-lg">Maximize Clicks</h4>
+                            <p class="text-sm text-gray-600 mt-2">Best for: Driving traffic, Brand awareness, Filling remarketing lists.</p>
+                            <div class="mt-2 text-xs bg-indigo-50 inline-block px-2 py-1 rounded">"Get me as many visitors as possible for $50/day"</div>
+                        </div>`;
+                    break;
+                case 'conversions':
+                    content = `
+                        <div>
+                            <h4 class="font-bold text-green-700 text-lg">Maximize Conversions</h4>
+                            <p class="text-sm text-gray-600 mt-2">Best for: Volume. Spending your full budget to get actions.</p>
+                            <div class="mt-2 text-xs bg-green-50 inline-block px-2 py-1 rounded">"Get me the most leads possible for $100/day"</div>
+                        </div>`;
+                    break;
+                case 'cpa':
+                    content = `
+                        <div>
+                            <h4 class="font-bold text-orange-700 text-lg">Target CPA (Cost-Per-Action)</h4>
+                            <p class="text-sm text-gray-600 mt-2">Best for: Efficiency. You have a strict cost-per-lead limit.</p>
+                            <div class="mt-2 text-xs bg-orange-50 inline-block px-2 py-1 rounded">"Get me as many leads as possible, but don't pay more than $15 per lead avg."</div>
+                        </div>`;
+                    break;
+                case 'roas':
+                    content = `
+                        <div>
+                            <h4 class="font-bold text-purple-700 text-lg">Target ROAS (Return On Ad Spend)</h4>
+                            <p class="text-sm text-gray-600 mt-2">Best for: E-commerce / Revenue. Optimizing for value, not just volume.</p>
+                            <div class="mt-2 text-xs bg-purple-50 inline-block px-2 py-1 rounded">"Get me $5 back for every $1 I spend (500% ROAS)."</div>
+                        </div>`;
+                    break;
+            }
+            display.innerHTML = content;
+            display.classList.add('fade-in');
+            setTimeout(() => display.classList.remove('fade-in'), 500);
+        }
+
+        // --- Bidding Chart ---
+        let biddingChartCtx = document.getElementById('biddingChart').getContext('2d');
+        new Chart(biddingChartCtx, {
+            type: 'line',
+            data: {
+                labels: ['Launch', 'Learning', 'Growth', 'Maturity'],
+                datasets: [{
+                    label: 'Efficiency / ROI',
+                    data: [20, 45, 70, 95],
+                    borderColor: '#1a73e8',
+                    backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { display: false },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const strategies = ['Max Clicks', 'Max Conversions', 'Target CPA', 'Target ROAS'];
+                                return "Recommended: " + strategies[context.dataIndex];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- Quality Score Radar ---
+        let qsRadarCtx = document.getElementById('qsRadarChart').getContext('2d');
+        new Chart(qsRadarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Expected CTR', 'Ad Relevance', 'Landing Page Exp'],
+                datasets: [{
+                    label: 'Perfect Score (10/10)',
+                    data: [10, 10, 10],
+                    backgroundColor: 'rgba(52, 168, 83, 0.2)',
+                    borderColor: '#34a853',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#34a853'
+                }, {
+                    label: 'Average Score (5/10)',
+                    data: [4, 7, 3],
+                    backgroundColor: 'rgba(234, 67, 53, 0.2)',
+                    borderColor: '#ea4335',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ea4335'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 10,
+                        ticks: { stepSize: 2 }
+                    }
+                }
+            }
+        });
+
+        // Initial Load
+        updateAdRankChart();
+        setMatchType('broad');
+    </script>
+</body>
+</html>

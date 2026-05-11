@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Ads Apps Certification: Interactive Study Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f0fdf4; }
+        ::-webkit-scrollbar-thumb { background: #86efac; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4ade80; }
+
+        /* Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+
+        /* Navigation Active State */
+        .nav-item.active {
+            background-color: #f0fdf4; /* green-50 */
+            border-left: 4px solid #16a34a; /* green-600 */
+            color: #14532d; /* green-900 */
+        }
+        .nav-item {
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+
+        /* Animations */
+        .hidden-section { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Interactive Cards */
+        .interactive-card { transition: transform 0.2s, box-shadow 0.2s; cursor: default; }
+        .interactive-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    </style>
+    <!-- Chosen Palette: Android/Play Store inspired. Green (Primary), White/Slate (Backgrounds). -->
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center z-50">
+        <h1 class="text-lg font-bold text-green-700">App Ads Master</h1>
+        <button id="mobile-menu-btn" class="text-slate-600 focus:outline-none text-2xl">
+            &#9776;
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="bg-white w-full md:w-64 border-r border-slate-200 flex-col md:flex hidden fixed md:relative z-40 h-full shadow-lg md:shadow-none transition-transform transform md:translate-x-0 -translate-x-full">
+        <div class="p-6 border-b border-slate-100">
+            <h1 class="text-xl font-bold text-green-700">App Cert Prep</h1>
+            <p class="text-xs text-slate-500 mt-1">Google App Campaigns (AC)</p>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li><button onclick="navigateTo('intro')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600 active" id="nav-intro">1. The App Ecosystem</button></li>
+                <li><button onclick="navigateTo('goals')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-goals">2. Goals & Bidding</button></li>
+                <li><button onclick="navigateTo('creative')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-creative">3. Creative Assets</button></li>
+                <li><button onclick="navigateTo('tech')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-tech">4. Measurement & Tech</button></li>
+                <li><button onclick="navigateTo('optimization')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-optimization">5. Optimization</button></li>
+                <li><button onclick="navigateTo('exam')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-exam">6. Exam Room</button></li>
+            </ul>
+        </nav>
+        <div class="p-4 bg-green-50 border-t border-green-100">
+            <p class="text-xs text-green-800 font-semibold">Learning Status</p>
+            <div class="w-full bg-green-200 h-2 rounded-full mt-2">
+                <div id="progress-bar" class="bg-green-600 h-2 rounded-full" style="width: 15%"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 relative" id="main-content">
+        
+        <!-- SECTION 1: INTRO & ECOSYSTEM -->
+        <section id="intro" class="fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">The App Campaign Ecosystem</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Google App Campaigns (formerly UAC) use machine learning to make decisions for you. You don't target keywords or placements manually. You provide <strong>Goal + Assets + Budget</strong>, and Google does the rest across its largest properties.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Card 1: Where Ads Run -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden interactive-card">
+                    <div class="absolute top-0 right-0 bg-green-100 px-3 py-1 rounded-bl-lg text-xs font-bold text-green-700">INVENTORY</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Where Ads Run</h3>
+                    <div class="flex items-center justify-center mb-4 text-4xl gap-4">
+                        <span>🔎</span><span>📺</span><span>🛍️</span>
+                    </div>
+                    <ul class="space-y-2 text-sm text-slate-600">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span><strong>Google Search:</strong> Matches intent.</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span><strong>Google Play:</strong> Search & "You might like".</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span><strong>YouTube:</strong> Native video & shorts.</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span><strong>Display Network:</strong> 3M+ sites/apps.</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span><strong>Discover:</strong> Feed environments.</li>
+                    </ul>
+                </div>
+
+                <!-- Card 2: The "Black Box" -->
+                <div class="bg-white rounded-xl shadow-sm border border-green-200 p-6 relative overflow-hidden ring-2 ring-green-50 interactive-card">
+                    <div class="absolute top-0 right-0 bg-green-600 px-3 py-1 rounded-bl-lg text-xs font-bold text-white">AUTOMATION</div>
+                    <h3 class="text-xl font-bold text-green-800 mb-4">The Machine Learning Core</h3>
+                    <p class="text-sm text-slate-600 mb-4">You cannot set manual bids for specific keywords or placements. Google analyzes 300M+ signal combinations in real-time.</p>
+                    <div class="bg-slate-50 p-3 rounded text-xs text-slate-500">
+                        <strong>Inputs You Control:</strong>
+                        <ul class="list-disc ml-4 mt-1">
+                            <li>Creative Assets (Text, Video, Image)</li>
+                            <li>Bidding (Target CPA/ROAS)</li>
+                            <li>Location & Language</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+                <div class="flex">
+                    <div class="text-2xl mr-4">⚠️</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-yellow-800 uppercase">Exam Concept: The Learning Period</h4>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            App Campaigns need time to learn. Avoid making significant changes (budget/bid > 20%) during the learning phase. It typically takes <strong>conversion delay + 2 weeks</strong> to stabilize.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: GOALS & BIDDING -->
+        <section id="goals" class="hidden-section fade-in max-w-5xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Campaign Types & Bidding</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    There are three main types of App Campaigns. Choosing the right one depends on your business maturity and goals.
+                </p>
+            </div>
+
+            <!-- Campaign Selector -->
+            <div class="grid md:grid-cols-3 gap-4 mb-8">
+                <button onclick="showCampaignType('install')" class="p-4 rounded-lg bg-green-50 border-2 border-green-500 text-green-900 font-bold hover:shadow-md transition">
+                    App Installs (ACi)
+                    <div class="text-xs font-normal mt-1">Volume or High Value Users</div>
+                </button>
+                <button onclick="showCampaignType('engagement')" class="p-4 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:border-green-300 transition">
+                    App Engagement (ACe)
+                    <div class="text-xs font-normal mt-1">Retargeting / Re-engagement</div>
+                </button>
+                <button onclick="showCampaignType('prereg')" class="p-4 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:border-green-300 transition">
+                    Pre-Registration
+                    <div class="text-xs font-normal mt-1">Build hype before launch</div>
+                </button>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="campaign-detail" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+                <!-- Default content (Install) loaded via JS -->
+            </div>
+
+            <!-- Bidding Chart -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4">Bidding Strategy Matrix</h3>
+                <div class="chart-container">
+                    <canvas id="biddingChart"></canvas>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-4 text-xs text-center text-slate-500">
+                    <div class="p-2 bg-slate-50 rounded"><strong>tCPA</strong>: Cost Per Action (Install or In-App Event)</div>
+                    <div class="p-2 bg-slate-50 rounded"><strong>tROAS</strong>: Return on Ad Spend (Value)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: CREATIVE ASSETS -->
+        <section id="creative" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Creative Asset Lab</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    In App Campaigns, <strong>Creative is the new Targeting</strong>. Google mixes your assets to create thousands of ad variations. Coverage is key.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Asset Checklist -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">Optimal Asset Mix</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <strong class="text-green-700">Text</strong>
+                                <p class="text-xs text-slate-500">4 Headlines, 5 Descriptions.</p>
+                            </div>
+                            <input type="checkbox" id="check-text" class="w-5 h-5 accent-green-600" onchange="updateAssetScore()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <strong class="text-green-700">Images (Landscape)</strong>
+                                <p class="text-xs text-slate-500">1200x628. Native feel.</p>
+                            </div>
+                            <input type="checkbox" id="check-img-land" class="w-5 h-5 accent-green-600" onchange="updateAssetScore()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <strong class="text-green-700">Images (Portrait)</strong>
+                                <p class="text-xs text-slate-500">For Stories/Apps. 1080x1920.</p>
+                            </div>
+                            <input type="checkbox" id="check-img-port" class="w-5 h-5 accent-green-600" onchange="updateAssetScore()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <strong class="text-green-700">Videos (Varied)</strong>
+                                <p class="text-xs text-slate-500">Landscape, Portrait, Square.</p>
+                            </div>
+                            <input type="checkbox" id="check-video" class="w-5 h-5 accent-green-600" onchange="updateAssetScore()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <strong class="text-green-700">HTML5</strong>
+                                <p class="text-xs text-slate-500">Playable ads (demos) interact.</p>
+                            </div>
+                            <input type="checkbox" id="check-html5" class="w-5 h-5 accent-green-600" onchange="updateAssetScore()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Score Visual -->
+                <div class="bg-slate-800 p-6 rounded-xl shadow-lg text-white flex flex-col justify-center items-center relative">
+                    <h3 class="text-lg font-bold mb-6">Asset Coverage Score</h3>
+                    <div class="w-48 h-48 relative flex items-center justify-center">
+                        <canvas id="assetCanvas" width="200" height="200"></canvas>
+                        <div class="absolute text-2xl font-bold" id="asset-text">Empty</div>
+                    </div>
+                    <p class="text-sm text-slate-400 mt-6 text-center" id="asset-feedback">
+                        Upload diverse assets to unlock all inventory (YouTube Shorts, Interstitials, Native).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Ad Groups Tip -->
+            <div class="mt-8 p-4 bg-green-50 rounded border border-green-200">
+                <h4 class="font-bold text-green-800 text-sm">Pro Strategy: Ad Groups</h4>
+                <p class="text-sm text-green-700 mt-1">
+                    You can have multiple Ad Groups in an App Campaign. Use them to <strong>theme</strong> your assets. <br>
+                    <em>Example: Ad Group A = "Food Delivery", Ad Group B = "Grocery Delivery".</em> This keeps ads relevant to specific user intents.
+                </p>
+            </div>
+        </section>
+
+        <!-- SECTION 4: TECH & MEASUREMENT -->
+        <section id="tech" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Measurement & Tech</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    App measurement is more complex than web. You need an SDK (Software Development Kit) to talk to Google Ads.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Card: Measurement Partners -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4">How to Track Conversions</h3>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li class="p-3 bg-slate-50 rounded">
+                            <span class="font-bold text-slate-800">1. Google Analytics for Firebase (Recommended):</span>
+                            Seamless integration, free, unlocks audience lists automatically.
+                        </li>
+                        <li class="p-3 bg-slate-50 rounded">
+                            <span class="font-bold text-slate-800">2. App Attribution Partners (AAP):</span>
+                            Adjust, AppsFlyer, Kochava, Branch. Required if you use many ad networks.
+                        </li>
+                        <li class="p-3 bg-slate-50 rounded">
+                            <span class="font-bold text-slate-800">3. Google Play (Android only):</span>
+                            Track installs directly (no code required), but can't track iOS.
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Card: Deep Linking -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4">Deep Linking</h3>
+                    <p class="text-sm text-slate-600 mb-4">
+                        A deep link sends a user who already has your app to a <strong>specific page</strong> inside the app, rather than the app store or home screen.
+                    </p>
+                    <div class="bg-yellow-50 p-4 rounded border-l-4 border-yellow-400">
+                        <h4 class="font-bold text-xs text-yellow-800 uppercase">Exam Tip</h4>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            For <strong>App Engagement (ACe)</strong> campaigns, Deep Links are <strong>mandatory</strong>. You cannot run re-engagement ads without directing users to specific content.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-800 mb-2">iOS & SKAdNetwork</h3>
+                <p class="text-sm text-slate-600">
+                    On iOS, privacy rules (ATT) limit data. Google integrates with Apple's <strong>SKAdNetwork</strong> to measure aggregated results. You must configure your conversion value schema to track quality on iOS.
+                </p>
+            </div>
+        </section>
+
+        <!-- SECTION 5: OPTIMIZATION -->
+        <section id="optimization" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Optimization Strategy</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Once the campaign is live, how do you manage it? Remember: The machine needs data stability.
+                </p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Optimization Rule 1 -->
+                <div class="bg-white p-5 rounded-lg border-l-4 border-red-500 shadow-sm">
+                    <h3 class="font-bold text-slate-800">Rule #1: The Budget Change Limit</h3>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Do not change your daily budget by more than <strong>20%</strong> at a time. Larger changes can reset the machine learning phase.
+                    </p>
+                </div>
+
+                <!-- Optimization Rule 2 -->
+                <div class="bg-white p-5 rounded-lg border-l-4 border-blue-500 shadow-sm">
+                    <h3 class="font-bold text-slate-800">Rule #2: Bid vs. Budget</h3>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Your daily budget should be at least <strong>50x your target CPA</strong> (for Installs) or <strong>10x your target CPA</strong> (for In-App Actions).
+                        <br><span class="text-xs text-slate-400">Example: If tCPA is $2, Daily Budget should be $100+.</span>
+                    </p>
+                </div>
+
+                <!-- Optimization Rule 3 -->
+                <div class="bg-white p-5 rounded-lg border-l-4 border-green-500 shadow-sm">
+                    <h3 class="font-bold text-slate-800">Rule #3: Creative Refresh</h3>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Check asset performance reports ("Best", "Good", "Low"). Replace "Low" performing assets every <strong>2-3 months</strong>. Do not delete them all at once; cycle them gradually.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: EXAM ROOM -->
+        <section id="exam" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Exam Room: Traps & Tips</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Specific scenarios often tested in the certification.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-slate-50 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('trap1')">
+                        <span>Trap: "Where do I set manual keywords?"</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="trap1" class="hidden-section p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200">
+                        <strong>Answer:</strong> You don't. App campaigns automatically generate targeting. If a question asks how to target a specific keyword, the answer is usually "App campaigns do this automatically based on Play Store data and asset text."
+                    </div>
+                </div>
+
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-slate-50 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('trap2')">
+                        <span>Trap: Conversion Windows</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="trap2" class="hidden-section p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200">
+                        <strong>Tip:</strong> Understand the delay. If you judge performance based on today's installs, you miss the full picture. Conversion windows for apps can be customized, but remember that **data lag** exists (especially on iOS).
+                    </div>
+                </div>
+
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-slate-50 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('trap3')">
+                        <span>Scenario: "Client wants high ROI, not volume"</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="trap3" class="hidden-section p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200">
+                        <strong>Answer:</strong> Use **tROAS** (Target Return on Ad Spend). This requires passing revenue data (value) for events back to Google Ads via Firebase or AAP.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Navigation Logic ---
+        function navigateTo(sectionId) {
+            const sections = ['intro', 'goals', 'creative', 'tech', 'optimization', 'exam'];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden-section');
+                document.getElementById(`nav-${id}`).classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.remove('hidden-section');
+            document.getElementById(`nav-${sectionId}`).classList.add('active');
+            document.getElementById('main-content').scrollTop = 0;
+
+            // Update Progress
+            const index = sections.indexOf(sectionId);
+            const progress = ((index + 1) / sections.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // Trigger specific renders
+            if(sectionId === 'goals') {
+                showCampaignType('install'); // Default
+                renderBiddingChart();
+            }
+            if(sectionId === 'creative') updateAssetScore();
+
+            // Mobile menu
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        });
+
+        // --- Campaign Type Selector ---
+        function showCampaignType(type) {
+            const container = document.getElementById('campaign-detail');
+            let content = '';
+            
+            if(type === 'install') {
+                content = `
+                    <h3 class="text-lg font-bold text-green-800 mb-2">App campaigns for installs (ACi)</h3>
+                    <p class="text-sm text-slate-600 mb-4">The most common type. Optimizes for getting new users to download.</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-3 bg-slate-50 rounded border">
+                            <strong>tCPA (Install):</strong><br> "Get me users for $2 per install."
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded border">
+                            <strong>tCPA (Action):</strong><br> "Get me users who will Install AND open the app once." (Advanced Install)
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'engagement') {
+                content = `
+                    <h3 class="text-lg font-bold text-green-800 mb-2">App campaigns for engagement (ACe)</h3>
+                    <p class="text-sm text-slate-600 mb-4">Re-engages users who <strong>already have the app installed</strong>.</p>
+                    <ul class="list-disc ml-4 text-sm text-slate-600 space-y-2">
+                        <li>Requires <strong>Deep Links</strong>.</li>
+                        <li>Requires an audience list (min 250k users recommended).</li>
+                        <li>Goal: Drive specific in-app actions (Purchase, Level Complete).</li>
+                    </ul>
+                `;
+            } else {
+                content = `
+                    <h3 class="text-lg font-bold text-green-800 mb-2">App campaigns for pre-registration</h3>
+                    <p class="text-sm text-slate-600 mb-4">Build excitement before launch. Only available on <strong>Android</strong>.</p>
+                    <p class="text-sm text-slate-600">Users register interest and get a notification when the app launches. The system then attempts to auto-install (D2I) on Wi-Fi.</p>
+                `;
+            }
+            container.innerHTML = content;
+        }
+
+        // --- Bidding Chart (Chart.js) ---
+        let biddingChart = null;
+        function renderBiddingChart() {
+            if(biddingChart) return;
+            const ctx = document.getElementById('biddingChart').getContext('2d');
+            biddingChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Launch', 'Stability', 'Scale', 'Profitability'],
+                    datasets: [
+                        {
+                            label: 'Focus: Install Volume (tCPA)',
+                            data: [80, 90, 95, 85],
+                            borderColor: '#22c55e',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Focus: ROAS / Value',
+                            data: [10, 30, 60, 90],
+                            borderColor: '#1e3a8a',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { title: { display: true, text: 'Performance Score' }, display: false }
+                    }
+                }
+            });
+        }
+
+        // --- Asset Score Logic ---
+        function updateAssetScore() {
+            const checks = [
+                document.getElementById('check-text').checked,
+                document.getElementById('check-img-land').checked,
+                document.getElementById('check-img-port').checked,
+                document.getElementById('check-video').checked,
+                document.getElementById('check-html5').checked
+            ];
+            
+            const score = checks.filter(Boolean).length;
+            const maxScore = 5;
+            const percentage = score / maxScore;
+
+            // Canvas drawing
+            const canvas = document.getElementById('assetCanvas');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background Circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 15;
+            ctx.strokeStyle = '#e2e8f0'; // Slate 200
+            ctx.stroke();
+
+            // Progress Arc
+            const startAngle = -0.5 * Math.PI;
+            const endAngle = (2 * percentage * Math.PI) - 0.5 * Math.PI;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.lineWidth = 15;
+            if(score <= 2) ctx.strokeStyle = '#ef4444'; // Red
+            else if(score <= 4) ctx.strokeStyle = '#eab308'; // Yellow
+            else ctx.strokeStyle = '#22c55e'; // Green
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Text Update
+            const textEl = document.getElementById('asset-text');
+            const feedEl = document.getElementById('asset-feedback');
+            
+            if(score <= 2) { 
+                textEl.innerText = 'Low'; textEl.className = 'absolute text-2xl font-bold text-red-500'; 
+                feedEl.innerText = "You are missing key inventory. Add Landscape Images and Video."; 
+            } else if(score <= 4) { 
+                textEl.innerText = 'Good'; textEl.className = 'absolute text-2xl font-bold text-yellow-500'; 
+                feedEl.innerText = "Almost full coverage. Add HTML5 or Portrait Videos to max out."; 
+            } else { 
+                textEl.innerText = 'Excellent'; textEl.className = 'absolute text-2xl font-bold text-green-500'; 
+                feedEl.innerText = "Full Inventory Unlocked! Your ads can run everywhere."; 
+            }
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden-section')) {
+                el.classList.remove('hidden-section');
+                el.classList.add('fade-in');
+            } else {
+                el.classList.add('hidden-section');
+            }
+        }
+    </script>
+</body>
+</html>

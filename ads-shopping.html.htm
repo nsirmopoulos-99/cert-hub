@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Shopping Certification Masterclass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; color: #44403c; } /* Stone-100 bg, Stone-700 text */
+        
+        /* Navigation Styles */
+        .nav-item { transition: all 0.3s ease; border-left: 4px solid transparent; cursor: pointer; }
+        .nav-item:hover { background-color: #e7e5e4; }
+        .nav-item.active { background-color: #ffffff; border-left-color: #0ea5e9; color: #0284c7; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        /* Chart Container - MANDATORY STYLING */
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 300px; 
+            max-height: 400px; 
+        } 
+        @media (min-width: 768px) { 
+            .chart-container { height: 350px; } 
+        }
+
+        /* Utility */
+        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .exam-tip { border-left: 4px solid #f59e0b; background-color: #fffbeb; padding: 1rem; border-radius: 0.5rem; }
+    </style>
+    <!-- Chosen Palette: Warm Neutral (Stone) with Corporate Blue/Green accents. Background: #f5f5f4. Cards: White. Accents: #0ea5e9 (Sky Blue), #22c55e (Green) for success, #f59e0b (Amber) for tips. -->
+
+    <!-- Application Structure Plan:
+         The app is designed as a "Merchant Center Academy" Dashboard.
+         Structure:
+         1. Left Sidebar Navigation: Logical flow from Setup -> Feeds -> Strategy -> Optimization.
+         2. Main Content Area: Dynamic sections using JS to switch views without reload.
+         3. Section 1 (Foundations): Comparison of Search vs. Shopping and the GMC relationship flow.
+         4. Section 2 (The Feed Lab): Interactive table/explorer for attributes (Critical exam topic).
+         5. Section 3 (Campaign Logic): A custom "Priority Simulator" to demonstrate the High/Med/Low priority logic (hard concept).
+         6. Section 4 (PMax & Bidding): Visualization of Asset Groups and Bidding Strategies via Chart.js.
+         7. Section 5 (Exam Check): Policy traps and tips summary.
+         Why? This structure moves from theory (Foundations) to data (Feeds) to execution (Campaigns/Bidding), mirroring the actual workflow of a Shopping manager.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Search vs Shopping: Side-by-side comparison cards. Goal: Clarify the trigger mechanism (Keywords vs Feed).
+         2. Feed Attribute Auditor: Interactive list where clicking an attribute reveals its rules/exam tips. Goal: Memorization of id, gtin, etc.
+         3. Priority Simulator: Custom JS Logic input/output. Goal: Comparison/Change. Users set priorities and see which campaign wins. Best for understanding "Budget Allocation" vs "Bid".
+         4. Strategy Radar Chart (Chart.js): Maps goals (Efficiency, Volume, Awareness) to Bidding Strategies (tROAS, Max Conv Value, etc.). Goal: Inform/Relate strategies to goals.
+         5. Disapproval Detector: Interactive toggle list for policy violations.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-stone-200 flex-shrink-0 flex flex-col hidden md:flex border-r border-stone-300">
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-stone-800 flex items-center gap-2">
+                <span>🛍️</span> Shopping <span class="text-sky-600">Pro</span>
+            </h1>
+            <p class="text-xs text-stone-500 mt-1 uppercase tracking-wide">Certification Prep</p>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-2 space-y-1">
+            <div class="px-4 pb-2 text-xs font-semibold text-stone-500 uppercase">Modules</div>
+            <div onclick="navigate('foundations')" id="nav-foundations" class="nav-item px-6 py-3 text-sm font-medium text-stone-600 active">1. Foundations & GMC</div>
+            <div onclick="navigate('feeds')" id="nav-feeds" class="nav-item px-6 py-3 text-sm font-medium text-stone-600">2. Feed Attributes</div>
+            <div onclick="navigate('campaigns')" id="nav-campaigns" class="nav-item px-6 py-3 text-sm font-medium text-stone-600">3. Structure & Priority</div>
+            <div onclick="navigate('bidding')" id="nav-bidding" class="nav-item px-6 py-3 text-sm font-medium text-stone-600">4. PMax & Bidding</div>
+            <div onclick="navigate('policy')" id="nav-policy" class="nav-item px-6 py-3 text-sm font-medium text-stone-600">5. Policy & Exam Tips</div>
+        </nav>
+        <div class="p-4 bg-stone-300">
+            <div class="text-xs text-stone-600 font-semibold">Exam Status</div>
+            <div class="w-full bg-stone-100 rounded-full h-2 mt-1">
+                <div class="bg-green-500 h-2 rounded-full" style="width: 20%" id="progress-bar"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 w-full bg-stone-100 border-b z-30 flex items-center justify-between p-4 shadow-sm">
+        <h1 class="text-lg font-bold text-stone-800">Shopping Pro</h1>
+        <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="text-stone-600 font-bold text-xl">☰</button>
+    </div>
+    <div id="mobile-menu" class="hidden fixed inset-0 bg-stone-100 z-40 flex flex-col pt-20 p-6 space-y-4 md:hidden">
+        <button onclick="navigate('foundations'); toggleMobile()" class="p-3 bg-white rounded shadow text-left">1. Foundations & GMC</button>
+        <button onclick="navigate('feeds'); toggleMobile()" class="p-3 bg-white rounded shadow text-left">2. Feed Attributes</button>
+        <button onclick="navigate('campaigns'); toggleMobile()" class="p-3 bg-white rounded shadow text-left">3. Structure & Priority</button>
+        <button onclick="navigate('bidding'); toggleMobile()" class="p-3 bg-white rounded shadow text-left">4. PMax & Bidding</button>
+        <button onclick="navigate('policy'); toggleMobile()" class="p-3 bg-white rounded shadow text-left">5. Policy & Tips</button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 pt-20 md:pt-8 relative bg-stone-50">
+        
+        <!-- MODULE 1: FOUNDATIONS -->
+        <section id="foundations" class="section-view fade-in max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">Foundations: GMC & Ads</h2>
+                <p class="text-stone-600 mt-2 text-lg">Understanding the ecosystem. Merchant Center stores the data; Google Ads builds the showroom. This section covers the fundamental differences between Search and Shopping and the setup process.</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Search vs Shopping -->
+                <div class="card p-6 border-t-4 border-blue-500">
+                    <h3 class="font-bold text-xl mb-4 flex items-center justify-between">
+                        Search Ads <span class="text-2xl">🔍</span>
+                    </h3>
+                    <ul class="space-y-3 text-sm text-stone-600">
+                        <li class="flex gap-2"><span>•</span> <span>Text-based ads.</span></li>
+                        <li class="flex gap-2"><span class="font-bold text-blue-600">Trigger:</span> <span>Keywords you select.</span></li>
+                        <li class="flex gap-2"><span>•</span> <span>Intent: Research & Specific Queries.</span></li>
+                    </ul>
+                </div>
+                <div class="card p-6 border-t-4 border-green-500">
+                    <h3 class="font-bold text-xl mb-4 flex items-center justify-between">
+                        Shopping Ads <span class="text-2xl">🛍️</span>
+                    </h3>
+                    <ul class="space-y-3 text-sm text-stone-600">
+                        <li class="flex gap-2"><span>•</span> <span>Visual ads (Photo, Price, Store).</span></li>
+                        <li class="flex gap-2"><span class="font-bold text-green-600">Trigger:</span> <span>Product Data (Feed) matching.</span></li>
+                        <li class="flex gap-2"><span>•</span> <span>Intent: High purchase intent.</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- GMC Process -->
+            <div class="card p-8 mb-8">
+                <h3 class="font-bold text-stone-800 text-lg mb-6">The Google Merchant Center (GMC) Flow</h3>
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-center">
+                    <div class="flex-1 p-4 bg-stone-100 rounded-lg">
+                        <div class="text-3xl mb-2">📦</div>
+                        <div class="font-bold text-stone-700">1. Upload Data</div>
+                        <p class="text-xs text-stone-500 mt-1">Send product feed to Merchant Center.</p>
+                    </div>
+                    <div class="text-2xl text-stone-400">➜</div>
+                    <div class="flex-1 p-4 bg-stone-100 rounded-lg">
+                        <div class="text-3xl mb-2">🔗</div>
+                        <div class="font-bold text-stone-700">2. Link Accounts</div>
+                        <p class="text-xs text-stone-500 mt-1">Connect GMC to Google Ads.</p>
+                    </div>
+                    <div class="text-2xl text-stone-400">➜</div>
+                    <div class="flex-1 p-4 bg-stone-100 rounded-lg">
+                        <div class="text-3xl mb-2">📢</div>
+                        <div class="font-bold text-stone-700">3. Create Campaign</div>
+                        <p class="text-xs text-stone-500 mt-1">Ads pull data automatically.</p>
+                    </div>
+                </div>
+                <div class="mt-6 exam-tip text-sm">
+                    <strong>⚠️ Exam Tip:</strong> You target Shopping ads using <em>Product Data</em>, NOT keywords. This is the most common trick question!
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <h3 class="font-bold text-stone-800 mb-4">GMC Requirements Checklist</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Claim & Verify URL</div>
+                    <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Visible Refund Policy</div>
+                    <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Secure Checkout (HTTPS)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 2: FEED ATTRIBUTES -->
+        <section id="feeds" class="section-view hidden fade-in max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">Product Feed Data</h2>
+                <p class="text-stone-600 mt-2 text-lg">The feed is the foundation. If the data is missing or incorrect, ads won't show. Explore the critical attributes below.</p>
+            </header>
+
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Attribute Selector -->
+                <div class="lg:w-1/3 space-y-2">
+                    <h3 class="font-semibold text-stone-500 uppercase text-xs tracking-wider mb-2">Select Attribute</h3>
+                    <button onclick="showAttribute('id')" class="w-full text-left p-3 bg-white hover:bg-stone-100 rounded border border-stone-200 transition">🆔 ID (SKU)</button>
+                    <button onclick="showAttribute('title')" class="w-full text-left p-3 bg-white hover:bg-stone-100 rounded border border-stone-200 transition">📝 Title</button>
+                    <button onclick="showAttribute('gtin')" class="w-full text-left p-3 bg-white hover:bg-stone-100 rounded border border-stone-200 transition font-bold text-stone-800">🏷️ GTIN (Critical)</button>
+                    <button onclick="showAttribute('price')" class="w-full text-left p-3 bg-white hover:bg-stone-100 rounded border border-stone-200 transition">💰 Price</button>
+                    <button onclick="showAttribute('category')" class="w-full text-left p-3 bg-white hover:bg-stone-100 rounded border border-stone-200 transition">📂 Google Product Category</button>
+                    <button onclick="showAttribute('custom')" class="w-full text-left p-3 bg-white hover:bg-stone-100 rounded border border-stone-200 transition">⚙️ Custom Labels</button>
+                </div>
+
+                <!-- Attribute Detail View -->
+                <div class="lg:w-2/3">
+                    <div id="attribute-display" class="card p-8 h-full flex flex-col justify-center">
+                        <div class="text-center text-stone-400">
+                            <p>Select an attribute from the left to view details.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 3: CAMPAIGN STRUCTURE -->
+        <section id="campaigns" class="section-view hidden fade-in max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">Structure & Priority Logic</h2>
+                <p class="text-stone-600 mt-2 text-lg">Standard Shopping uses a unique "Priority" system to control budget allocation across campaigns. Test your understanding with the simulator below.</p>
+            </header>
+
+            <!-- Priority Simulator -->
+            <div class="card p-6 md:p-8 mb-8 border-t-4 border-indigo-500">
+                <h3 class="font-bold text-xl text-stone-800 mb-2">Priority Simulator 🎛️</h3>
+                <p class="text-sm text-stone-500 mb-6">Scenario: You have the same running shoe in two different campaigns. Which campaign serves the ad?</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    <!-- Campaign A -->
+                    <div class="bg-indigo-50 p-4 rounded border border-indigo-100">
+                        <h4 class="font-bold text-indigo-800 mb-3">Campaign A ("Best Sellers")</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-stone-500">Priority Setting</label>
+                                <select id="prio-a" class="w-full p-2 rounded border border-indigo-200" onchange="runSimulation()">
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-stone-500">Bid ($)</label>
+                                <input type="number" id="bid-a" value="2.00" class="w-full p-2 rounded border border-indigo-200" oninput="runSimulation()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-stone-500">Budget Status</label>
+                                <select id="budget-a" class="w-full p-2 rounded border border-indigo-200" onchange="runSimulation()">
+                                    <option value="Available">Budget Available</option>
+                                    <option value="Empty">Budget Depleted</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campaign B -->
+                    <div class="bg-stone-100 p-4 rounded border border-stone-200">
+                        <h4 class="font-bold text-stone-800 mb-3">Campaign B ("All Products")</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-stone-500">Priority Setting</label>
+                                <select id="prio-b" class="w-full p-2 rounded border border-stone-300" onchange="runSimulation()">
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low" selected>Low</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-stone-500">Bid ($)</label>
+                                <input type="number" id="bid-b" value="5.00" class="w-full p-2 rounded border border-stone-300" oninput="runSimulation()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Area -->
+                <div id="sim-result" class="bg-stone-800 text-white p-4 rounded text-center">
+                    Run simulation...
+                </div>
+            </div>
+
+            <!-- Structure Visual -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card p-6">
+                    <h3 class="font-bold text-stone-800 mb-3">Subdivision Hierarchy</h3>
+                    <div class="text-sm font-mono bg-stone-100 p-4 rounded border border-stone-200">
+                        All Products<br>
+                        &nbsp;└─ Brand: Nike<br>
+                        &nbsp;&nbsp;&nbsp;└─ Category: Shoes<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ Item ID: 12345 (Bid: $1.50)
+                    </div>
+                    <p class="text-xs text-stone-500 mt-2">Drill down from broad to specific to bid accurately.</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="font-bold text-stone-800 mb-3">Custom Labels</h3>
+                    <p class="text-sm text-stone-600 mb-2">Use labels for internal logic, not customer facing.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">High Margin</span>
+                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Winter Sale</span>
+                        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Clearance</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 4: PMAX & BIDDING -->
+        <section id="bidding" class="section-view hidden fade-in max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">Performance Max & Bidding</h2>
+                <p class="text-stone-600 mt-2 text-lg">Modern Google Shopping relies on Performance Max (PMax) and Smart Bidding. Understand when to use which strategy.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- PMax Explanation -->
+                <div class="card p-6">
+                    <h3 class="font-bold text-xl mb-4">Performance Max (Retail)</h3>
+                    <p class="text-sm text-stone-600 mb-4">A goal-based campaign accessing ALL inventory (Search, Shopping, YouTube, Display, Maps, Gmail).</p>
+                    
+                    <div class="bg-stone-50 p-4 rounded border border-stone-200 mb-4">
+                        <h4 class="font-bold text-xs uppercase text-stone-500 mb-2">PMax Structure: Asset Groups</h4>
+                        <div class="flex gap-2">
+                            <div class="flex-1 bg-white p-2 text-center rounded shadow-sm text-xs border">
+                                📦<br>Listing Groups<br>(Feed Data)
+                            </div>
+                            <div class="text-stone-400 self-center">+</div>
+                            <div class="flex-1 bg-white p-2 text-center rounded shadow-sm text-xs border">
+                                🖼️<br>Creative Assets<br>(Images/Video)
+                            </div>
+                            <div class="text-stone-400 self-center">+</div>
+                            <div class="flex-1 bg-white p-2 text-center rounded shadow-sm text-xs border">
+                                📡<br>Audience Signals<br>(Data)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exam-tip text-xs">
+                        <strong>⚠️ Exam Tip:</strong> You don't "target" audiences in PMax; you provide <strong>Signals</strong> to guide the AI.
+                    </div>
+                </div>
+
+                <!-- Bidding Chart -->
+                <div class="card p-6">
+                    <h3 class="font-bold text-xl mb-4">Bidding Strategy Matrix</h3>
+                    <div class="chart-container">
+                        <canvas id="biddingChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-stone-500 mt-2">Map your goal to the strategy.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card p-6 border-l-4 border-purple-500">
+                    <h4 class="font-bold text-purple-700">Target ROAS (tROAS)</h4>
+                    <p class="text-sm text-stone-600 mt-1">"I want $5 revenue for every $1 spent."</p>
+                    <p class="text-xs text-stone-400 mt-2">Requires Conversion Value tracking.</p>
+                </div>
+                <div class="card p-6 border-l-4 border-blue-500">
+                    <h4 class="font-bold text-blue-700">Maximize Conversion Value</h4>
+                    <p class="text-sm text-stone-600 mt-1">"Get the most revenue possible within my budget."</p>
+                    <p class="text-xs text-stone-400 mt-2">Best for growth if no strict ROAS target.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 5: POLICY -->
+        <section id="policy" class="section-view hidden fade-in max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800">Policy & Exam Tips</h2>
+                <p class="text-stone-600 mt-2 text-lg">Avoid disapprovals and account suspensions. Memorize these common traps.</p>
+            </header>
+
+            <div class="card p-8 mb-8">
+                <h3 class="font-bold text-stone-800 mb-6 text-xl">The "Big 3" Disapprovals</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4 p-4 bg-red-50 rounded border border-red-100">
+                        <div class="text-2xl">💸</div>
+                        <div>
+                            <h4 class="font-bold text-red-800">Price Mismatch</h4>
+                            <p class="text-sm text-red-700">Feed price ($10) ≠ Landing Page price ($12). Immediate disapproval.</p>
+                            <div class="text-xs text-red-600 mt-1 font-semibold">Fix: Enable Automatic Item Updates.</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 bg-orange-50 rounded border border-orange-100">
+                        <div class="text-2xl">📦</div>
+                        <div>
+                            <h4 class="font-bold text-orange-800">Availability Mismatch</h4>
+                            <p class="text-sm text-orange-700">Feed says "In Stock", Page says "Sold Out".</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 bg-yellow-50 rounded border border-yellow-100">
+                        <div class="text-2xl">🚫</div>
+                        <div>
+                            <h4 class="font-bold text-yellow-800">Promotional Overlays</h4>
+                            <p class="text-sm text-yellow-700">Images must be clean. No "Free Shipping" text or logos overlaid on the photo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card p-6">
+                    <h3 class="font-bold text-stone-800 mb-4">Exam Traps ⚠️</h3>
+                    <ul class="space-y-2 text-sm text-stone-600">
+                        <li>• <strong>Targeting:</strong> Shopping uses <em>Feed Data</em>, not keywords.</li>
+                        <li>• <strong>Negative Keywords:</strong> Can be used in Standard Shopping, hard to use in PMax.</li>
+                        <li>• <strong>Local Ads:</strong> LIA requires a separate inventory feed and Google My Business link.</li>
+                    </ul>
+                </div>
+                <div class="card p-6">
+                    <h3 class="font-bold text-stone-800 mb-4">Misrepresentation</h3>
+                    <p class="text-sm text-stone-600 mb-2">The most severe violation. Causes suspension.</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-500">
+                        <li>Missing contact info.</li>
+                        <li>Insecure checkout (Http).</li>
+                        <li>Hiding shipping costs until checkout.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- Navigation Logic ---
+        function navigate(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section-view').forEach(el => el.classList.add('hidden'));
+            // Show target
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Update Sidebar
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active', 'bg-white', 'text-sky-600', 'border-l-sky-500');
+            });
+            const activeNav = document.getElementById('nav-' + sectionId);
+            if(activeNav) activeNav.classList.add('active');
+
+            // Scroll top
+            document.querySelector('main').scrollTop = 0;
+
+            // Update Progress Bar (Simulated)
+            const stages = ['foundations', 'feeds', 'campaigns', 'bidding', 'policy'];
+            const idx = stages.indexOf(sectionId);
+            const progress = ((idx + 1) / 5) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        function toggleMobile() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // --- Feed Attribute Logic ---
+        const attributes = {
+            'id': { title: 'ID (SKU)', desc: 'Unique identifier for the product. Used to track performance over time.', status: 'Required' },
+            'title': { title: 'Title', desc: 'The most important attribute for SEO. Format: Brand + Product + Color + Size.', status: 'Required' },
+            'gtin': { title: 'GTIN', desc: 'Global Trade Item Number (UPC/EAN). Critical for brand name goods. Missing GTIN = Disapproval or low impressions.', status: 'Critical / Required' },
+            'price': { title: 'Price', desc: 'Must match the landing page exactly. Mismatches cause disapproval.', status: 'Required' },
+            'category': { title: 'Google Product Category', desc: 'Google\'s strict taxonomy (e.g., Apparel > Shoes). distinct from "Product Type".', status: 'Optional but Recommended' },
+            'custom': { title: 'Custom Labels', desc: 'Empty fields (0-4) for YOUR use. E.g., "Season", "Margin", "Best Seller". Used for bidding.', status: 'Optional' }
+        };
+
+        function showAttribute(key) {
+            const data = attributes[key];
+            const container = document.getElementById('attribute-display');
+            container.innerHTML = `
+                <div class="fade-in">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-2xl font-bold text-stone-800">${data.title}</h3>
+                        <span class="px-3 py-1 bg-stone-200 text-stone-700 rounded-full text-xs font-bold uppercase">${data.status}</span>
+                    </div>
+                    <p class="text-lg text-stone-600 leading-relaxed">${data.desc}</p>
+                    <div class="mt-8 p-4 bg-stone-50 border-l-4 border-sky-500 text-sm text-stone-500">
+                        <strong>Why it matters:</strong> Google uses this data to match user searches to your product.
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Priority Simulator Logic ---
+        function runSimulation() {
+            const prioMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
+            
+            const prioA = prioMap[document.getElementById('prio-a').value];
+            const bidA = parseFloat(document.getElementById('bid-a').value);
+            const budgetA = document.getElementById('budget-a').value;
+
+            const prioB = prioMap[document.getElementById('prio-b').value];
+            const bidB = parseFloat(document.getElementById('bid-b').value);
+
+            let resultHTML = "";
+
+            // Logic: High Priority wins access first.
+            // If Budget is empty, High Priority falls away.
+            
+            if (budgetA === 'Empty') {
+                // Campaign A is out. B wins.
+                resultHTML = `
+                    <div class="text-xl font-bold text-stone-300">Winner: <span class="text-white">Campaign B</span></div>
+                    <p class="text-sm mt-2">Campaign A has priority, but <strong>Budget is Depleted</strong>.</p>
+                    <p class="text-sm text-stone-400">Google serves Campaign B (Bid: $${bidB}).</p>
+                `;
+            } else {
+                // Budget A is available. Check Priority.
+                if (prioA > prioB) {
+                    resultHTML = `
+                        <div class="text-xl font-bold text-indigo-300">Winner: <span class="text-white">Campaign A</span></div>
+                        <p class="text-sm mt-2">Campaign A has <strong>Higher Priority</strong>.</p>
+                        <p class="text-sm text-stone-400">Google uses Campaign A's bid ($${bidA}), even though Campaign B's bid ($${bidB}) is higher!</p>
+                        <div class="mt-2 text-xs bg-yellow-600 text-white px-2 py-1 inline-block rounded">Exam Concept: Priority trumps Bid</div>
+                    `;
+                } else if (prioA < prioB) {
+                     resultHTML = `
+                        <div class="text-xl font-bold text-stone-300">Winner: <span class="text-white">Campaign B</span></div>
+                        <p class="text-sm mt-2">Campaign B has <strong>Higher Priority</strong>.</p>
+                    `;
+                } else {
+                    // Equal Priority -> Highest Bid Wins
+                    if (bidA >= bidB) {
+                        resultHTML = `
+                        <div class="text-xl font-bold text-indigo-300">Winner: <span class="text-white">Campaign A</span></div>
+                        <p class="text-sm mt-2">Priorities are equal. <strong>Higher Bid Wins.</strong></p>
+                    `;
+                    } else {
+                        resultHTML = `
+                        <div class="text-xl font-bold text-stone-300">Winner: <span class="text-white">Campaign B</span></div>
+                        <p class="text-sm mt-2">Priorities are equal. <strong>Higher Bid Wins.</strong></p>
+                    `;
+                    }
+                }
+            }
+
+            document.getElementById('sim-result').innerHTML = resultHTML;
+        }
+
+        // --- Bidding Chart (Chart.js) ---
+        // Render on page load
+        window.addEventListener('load', () => {
+            const ctx = document.getElementById('biddingChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Growth/Volume', 'Efficiency (ROI)', 'Control', 'Automation', 'Simplicity'],
+                    datasets: [{
+                        label: 'Standard Shopping (Manual CPC)',
+                        data: [4, 6, 10, 2, 4],
+                        fill: true,
+                        backgroundColor: 'rgba(148, 163, 184, 0.2)', // Stone-400
+                        borderColor: 'rgb(148, 163, 184)',
+                        pointBackgroundColor: 'rgb(148, 163, 184)',
+                    }, {
+                        label: 'Performance Max (Smart Bidding)',
+                        data: [10, 8, 3, 10, 9],
+                        fill: true,
+                        backgroundColor: 'rgba(14, 165, 233, 0.2)', // Sky-500
+                        borderColor: 'rgb(14, 165, 233)',
+                        pointBackgroundColor: 'rgb(14, 165, 233)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: false },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                footer: function(tooltipItems) {
+                                    if(tooltipItems[0].datasetIndex === 1) return "Rec: Use for scaling.";
+                                    return "Rec: Use for specific control.";
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Run initial sim
+            runSimulation();
+        });
+
+    </script>
+</body>
+</html>

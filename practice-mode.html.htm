@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Certification Exam Simulator (Practice Mode)</title>
+<style>
+    :root{--primary:#1a73e8;--success:#188038;--warning:#f9ab00;--danger:#d93025;--text:#202124;--bg:#f8f9fa;--card-bg:#ffffff;--border:#dadce0}
+    *{box-sizing:border-box;font-family:'Roboto','Segoe UI',sans-serif}
+    body{margin:0;padding:0;background-color:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+    .container{max-width:800px;margin:40px auto;padding:20px;width:100%}
+    h1,h2{text-align:center;color:var(--text)}.subtitle{text-align:center;color:#5f6368;margin-bottom:30px}
+    .card{background:var(--card-bg);border-radius:8px;box-shadow:0 1px 2px 0 rgba(60,64,67,0.3);padding:30px;margin-bottom:20px}
+    .screen{display:none;animation:fadeIn 0.3s ease-in-out}.screen.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .cert-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:20px}
+    .cert-option{border:2px solid var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;font-weight:500;transition:0.2s}
+    .cert-option:hover{border-color:var(--primary);background:#e8f0fe}
+    .cert-option.selected{border-color:var(--primary);background:#e8f0fe;color:var(--primary);font-weight:bold}
+    .progress-bar{width:100%;height:6px;background:#e0e0e0;border-radius:3px;margin-bottom:20px}
+    .progress-fill{height:100%;background:var(--primary);width:0%;transition:width 0.3s ease}
+    .question-meta{display:flex;justify-content:space-between;font-size:0.9em;color:#5f6368;margin-bottom:15px}
+    .question-text{font-size:1.2em;line-height:1.5;margin-bottom:25px;font-weight:500}
+    .options-group{display:flex;flex-direction:column;gap:10px}
+    
+    /* Updated Option Styles for Feedback */
+    .option-label{display:flex;align-items:center;padding:15px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:background 0.2s}
+    .option-label:hover:not(.disabled){background:#f1f3f4}
+    .option-input{margin-right:15px;transform:scale(1.2)}
+    .option-input:checked+span{font-weight:500}
+    
+    .option-label.disabled {cursor: default; pointer-events: none;}
+    .option-label.correct {border-color: var(--success); background-color: #e6f4ea; color: var(--success); font-weight: bold;}
+    .option-label.wrong {border-color: var(--danger); background-color: #fce8e6; color: var(--danger);}
+
+    /* Explanation Box */
+    .feedback-box {display: none; margin-top: 20px; padding: 15px; border-radius: 6px; border-left: 5px solid; background: #f8f9fa;}
+    .feedback-box.correct {border-color: var(--success); background: #e6f4ea;}
+    .feedback-box.wrong {border-color: var(--danger); background: #fce8e6;}
+    .feedback-title {font-weight: bold; margin-bottom: 5px; display: block;}
+
+    .nav-buttons{display:flex;justify-content:space-between;margin-top:30px}
+    .btn{padding:10px 24px;border:none;border-radius:4px;font-size:1em;cursor:pointer;font-weight:500}
+    .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:#1765cc}
+    .btn-secondary{background:#fff;color:var(--primary);border:1px solid var(--border)}.btn-secondary:hover{background:#f8f9fa}
+    .btn:disabled{opacity:0.5;cursor:not-allowed}
+    .score-circle{width:150px;height:150px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 30px;border:8px solid var(--border);font-size:2.5em;font-weight:bold}
+    .pass{border-color:var(--success);color:var(--success)}.fail{border-color:var(--danger);color:var(--danger)}
+    .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Google Exam Simulator</h1>
+    <p class="subtitle">Practice Mode: Instant Feedback & Explanations</p>
+    
+    <div id="selection-screen" class="screen active card">
+        <h2>Select Certification</h2>
+        <div class="cert-grid" id="cert-grid"></div>
+        <div style="text-align:center;margin-top:20px">
+            <button id="start-btn" class="btn btn-primary" disabled>Start Exam</button>
+        </div>
+    </div>
+
+    <div id="exam-screen" class="screen card">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="question-meta"><span id="cert-label"></span><span id="question-count"></span></div>
+        <div id="question-container">
+            <div class="question-text" id="question-text"></div>
+            <div class="options-group" id="options-container"></div>
+            <div id="feedback-box" class="feedback-box"></div>
+        </div>
+        <div class="nav-buttons">
+            <button id="prev-btn" class="btn btn-secondary">Previous</button>
+            <button id="next-btn" class="btn btn-primary">Next</button>
+            <button id="finish-btn" class="btn btn-primary hidden">Submit Exam</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen card">
+        <h2>Exam Results</h2>
+        <div id="score-circle" class="score-circle">0%</div>
+        <div style="text-align:center;margin-bottom:30px">
+            <div id="result-message" style="font-size:1.5em;margin-bottom:10px"></div>
+            <p>Score: <span id="score-fraction"></span></p>
+        </div>
+        <div class="nav-buttons" style="justify-content:center;gap:20px">
+            <button id="retake-btn" class="btn btn-secondary">Retake Same Exam</button>
+            <button id="home-btn" class="btn btn-primary">New Certification</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/** * DATA: Questions + Explanations (e)
+ */
+const questionPools = {
+    'ads-search': [
+        { t: "Which automated bidding strategy should you use to increase conversion value while maintaining a specific ROAS?", o: ["Target ROAS", "Maximize Conversions", "Target CPA", "Maximize Clicks"], c: 0, e: "Target ROAS (Return On Ad Spend) is specifically designed to get the most conversion value while adhering to a specific percentage return you define." },
+        { t: "Which three factors determine Quality Score?", o: ["Expected CTR, Ad Relevance, Landing Page Experience", "Bid amount, Ad Rank, CTR", "Website speed, Ad Relevance, Max CPC", "Device targeting, Audience Signals, Ad Copy"], c: 0, e: "Quality Score is calculated based on the combined performance of 3 components: Expected Click-through rate, Ad Relevance, and Landing Page Experience." },
+        { t: "Which feature allows showing ads only to users who previously visited your website?", o: ["RLSA (Remarketing Lists for Search Ads)", "In-Market Audiences", "Affinity Audiences", "Demographic Targeting"], c: 0, e: "RLSA allows you to customize your search ads campaign for people who have previously visited your site, and tailor your bids and ads to these visitors." },
+        { t: "What is the primary benefit of Performance Planner?", o: ["Forecasting potential campaign performance", "Automating daily budgets", "Writing ad copy", "Guaranteeing sales"], c: 0, e: "Performance Planner uses machine learning to reveal the possibilities for your Google Ads campaigns and helps you forecast performance." },
+        { t: "Minimum number of headlines for a Responsive Search Ad?", o: ["3 (but ideally more)", "15", "2", "1"], c: 0, e: "You must provide at least 3 headlines and 2 descriptions for an RSA, although providing more gives Google more options to test." },
+        { t: "Which factor does NOT directly improve Ad Rank?", o: ["Increasing daily budget", "Increasing bid", "Improving ad relevance", "Improving landing page exp"], c: 0, e: "Budget determines how *often* your ad shows, but Ad Rank (position) is determined by Bid amount, Auction-time ad quality, and Ad Rank thresholds." },
+        { t: "Benefit of Broad Match with Smart Bidding?", o: ["Captures new, high-performing queries", "Ensures exact spelling matches", "Lowers CPC only", "Guarantees position 1"], c: 0, e: "Broad match helps capture search queries you didn't think of, while Smart Bidding ensures you only bid on those queries if they are likely to convert." },
+        { t: "Feature to dynamically insert user's query into ad text?", o: ["Keyword Insertion", "Dynamic Search Ads", "Ad Customizers", "Countdown Timers"], c: 0, e: "Keyword insertion updates your ads with the keywords in your ad group that caused your ads to show." },
+        { t: "Why accept a recommendation to 'Remove non-serving keywords'?", o: ["Simplifies account management", "Increases Quality Score", "Lowers bids", "Changes match types"], c: 0, e: "Cleaning up non-serving keywords makes the account easier to manage and analyze without negatively impacting performance since they weren't showing anyway." },
+        { t: "How to prevent ads from showing for irrelevant searches?", o: ["Negative Keywords", "Placement Exclusions", "Topic Targeting", "Demographic Exclusions"], c: 0, e: "Negative keywords let you exclude search terms from your campaigns and help you focus on only the keywords that matter to your customers." },
+        { t: "Best goal for driving in-store foot traffic?", o: ["Local Store Visits and Promotions", "Leads", "Website Traffic", "Brand Awareness"], c: 0, e: "The 'Local store visits and promotions' goal is designed to drive offline traffic." },
+        { t: "What is the function of the 'Recommendations' tab?", o: ["Provide optimization suggestions", "Show competitor data", "Bill your card", "Contact support"], c: 0, e: "Recommendations look at your account's performance history and your campaign settings to generate ideas that can improve performance." },
+        { t: "Asset to navigate to specific pages of your website?", o: ["Sitelink Assets", "Callout Assets", "Structured Snippets", "Location Assets"], c: 0, e: "Sitelinks add additional links to your ad that take people to specific pages on your site." },
+        { t: "Required tool to track 'Contact Us' form fills?", o: ["Conversion Tracking", "Google Trends", "Auction Insights", "Keyword Planner"], c: 0, e: "Conversion tracking is a free tool that shows you what happens *after* a customer interacts with your ads, such as filling out a form." },
+        { t: "What does 'Optimization Score' indicate?", o: ["Estimate of how well account is set up", "Exact Ad Rank", "Website speed", "Budget spent"], c: 0, e: "Optimization score is an estimate of how well your Google Ads account is set up to perform, ranging from 0% to 100%." },
+        { t: "Bidding strategy for maximum visibility on page 1?", o: ["Target Impression Share", "Maximize Clicks", "Target CPA", "Enhanced CPC"], c: 0, e: "Target Impression Share automatically sets bids with the goal of showing your ad on the absolute top of the page, on the top of the page, or anywhere on the page." },
+        { t: "Two targets for Dynamic Search Ads (DSA)?", o: ["Website index or page feed", "Keywords and Topics", "Audiences and Demographics", "Manual CPC"], c: 0, e: "DSAs target based on the content of your website (via Google's index or a specific page feed), not keywords." },
+        { t: "Identifier for offline conversion tracking?", o: ["GCLID", "User ID", "IP Address", "Device ID"], c: 0, e: "GCLID (Google Click ID) is the unique parameter passed in the URL that allows you to match an offline conversion back to a specific ad click." },
+        { t: "Asset to highlight 'Free Shipping' or '24/7 Support'?", o: ["Callout Assets", "Sitelinks", "Lead Forms", "Images"], c: 0, e: "Callout assets allow you to include additional text with your search ads to highlight specific attributes like unique offers or services." },
+        { t: "What is Data-driven attribution?", o: ["Distributes credit based on historical data", "100% credit to last click", "Equal credit to all", "Time decay credit"], c: 0, e: "Data-driven attribution uses actual data from your account to determine which ads, keywords, and campaigns have the greatest impact on your business goals." },
+        { t: "What happens if daily budget is depleted?", o: ["Ads stop showing for the day", "Google charges more", "Ads never show", "CPC increases"], c: 0, e: "Once your average daily budget is reached (or 2x on specific days), ads will generally stop showing until the next day." },
+        { t: "Tool to compare performance with competitors?", o: ["Auction Insights", "Keyword Planner", "Ad Preview", "Reach Planner"], c: 0, e: "The Auction Insights report lets you compare your performance with other advertisers who are participating in the same auctions that you are." },
+        { t: "Match type to show for 'emergency plumber' but NOT 'plumber job'?", o: ["Broad/Phrase for 'plumber', Negative for 'job'", "Exact for 'job'", "Broad only", "DSA"], c: 0, e: "You target 'plumber' but add 'job' as a Negative Keyword to prevent the ad from showing for employment-related searches." },
+        { t: "Where is daily budget set?", o: ["Campaign Level", "Ad Group Level", "Account Level", "Keyword Level"], c: 0, e: "Budgets are set at the Campaign level." },
+        { t: "What is 'Ad Strength'?", o: ["Feedback on relevance/diversity of RSA assets", "Quality Score guarantee", "Click predictor", "Publisher tool"], c: 0, e: "Ad Strength gives you feedback on how well your ad follows best practices (like variety of headlines) to perform well." },
+        { t: "Benefit of Auto-tagging?", o: ["Appends GCLID for tracking", "Writes copy", "Creates negatives", "Tags images"], c: 0, e: "Auto-tagging automatically appends a parameter (GCLID) to your URLs, which is required for tracking conversions in Google Analytics and Ads." },
+        { t: "Targeting option for people IN or INTERESTED IN a location?", o: ["Presence or Interest", "Presence Only", "Search Interest Only", "Exclusion"], c: 0, e: "The default setting 'Presence or Interest' shows ads to people in your location OR people searching for your location from elsewhere." },
+        { t: "Best campaign for product feed advertising?", o: ["Shopping / PMax Retail", "Search", "Video", "App"], c: 0, e: "Shopping campaigns and Performance Max for Retail are specifically designed to use Merchant Center feeds." },
+        { t: "Max headlines in an RSA?", o: ["15", "4", "10", "3"], c: 0, e: "You can provide up to 15 headlines and 4 descriptions in a single Responsive Search Ad." },
+        { t: "Purpose of Structured Snippets?", o: ["List items (Brands, Styles)", "Phone number", "Map location", "Lead form"], c: 0, e: "Structured snippets allow you to list specific aspects of your products or services, such as a list of Brands, Models, or Destinations." }
+    ],
+    'ads-display': [
+        { t: "Ad format that automatically adjusts size and appearance?", o: ["Responsive Display Ads", "Image Ads", "Lightbox", "HTML5"], c: 0, e: "Responsive Display Ads automatically adjust their size, appearance, and format to fit just about any available ad space." },
+        { t: "Audience for users actively researching to buy?", o: ["In-Market Audiences", "Affinity", "Custom Intent", "Demographics"], c: 0, e: "In-Market audiences are for people whose search and browsing behavior indicates they are actively researching or planning to buy." },
+        { t: "Benefit of Smart Display Campaigns?", o: ["Automated bidding/targeting/creation", "Manual control", "YouTube only", "A/B testing"], c: 0, e: "Smart Display campaigns offer a simple, intelligent solution using automation to manage bidding, targeting, and ad creation." },
+        { t: "Outcome of 'Targeting' vs 'Observation'?", o: ["Restricts ads to selection only", "Monitors only", "Increases bid", "Broadens reach"], c: 0, e: "'Targeting' restricts your reach to the selected audience. 'Observation' allows you to monitor that audience and adjust bids without restricting reach." },
+        { t: "How does vCPM bidding work?", o: ["Pay when 50% visible for 1s", "Pay per served", "Pay per click", "Pay per conversion"], c: 0, e: "With Viewable CPM (vCPM), you only pay when your ad is considered viewable (50% of pixels visible for at least 1 second for display ads)." },
+        { t: "Format allowing custom assets combined by Google?", o: ["Responsive Display Ads", "Standard Image", "AMPHTML", "Gmail"], c: 0, e: "You upload assets (images, headlines, logos) and Google combines them to create ads." },
+        { t: "Where to exclude mature content?", o: ["Content Suitability / Exclusions", "Demographics", "Devices", "Audience Manager"], c: 0, e: "Content exclusions (formerly opt-outs) allow you to prevent ads from showing on categories like tragedy, mature audiences, etc." },
+        { t: "Purpose of Frequency Capping?", o: ["Limit views per unique user", "Limit budget", "Limit clicks", "Limit keywords"], c: 0, e: "Frequency capping limits the number of times your ads appear to the same person." },
+        { t: "Tool to plan reach/frequency?", o: ["Reach Planner", "Performance Planner", "Keyword Planner", "Ad Preview"], c: 0, e: "Reach Planner is designed for Video and Display to forecast reach and frequency." },
+        { t: "Audience for long-term lifestyle/interests?", o: ["Affinity Audiences", "In-Market", "Life Events", "Custom Segments"], c: 0, e: "Affinity audiences target users based on their habits, interests, and lifestyle (e.g., 'Foodies')." },
+        { t: "Requirement for Display Remarketing?", o: ["Global site tag (Google tag)", "High spend", "YouTube channel", "Image ads only"], c: 0, e: "You must add the Google tag to your website to track visitors and add them to remarketing lists." },
+        { t: "Bidding strategy for Branding/Reach?", o: ["Target CPM (tCPM)", "Target CPA", "Max Conversions", "Enhanced CPC"], c: 0, e: "CPM (Cost Per Mille) is best for visibility and reach goals." },
+        { t: "Why use Similar Segments?", o: ["Find new users like existing customers", "Retarget visitors", "Target websites", "Target age"], c: 0, e: "Similar segments look for new users who share characteristics with the people in your existing remarketing lists." },
+        { t: "Deep Linking advantage?", o: ["Directs to specific app page", "Directs to homepage", "Downloads app", "Improves image"], c: 0, e: "Deep linking sends users who already have your app directly to the relevant content inside the app, rather than a mobile web page." },
+        { t: "Targeting based on website content (e.g., 'vegan pets')?", o: ["Contextual Targeting", "Affinity", "Demographic", "Remarketing"], c: 0, e: "Contextual targeting matches your ads to sites with content related to your keywords or topics." },
+        { t: "What is an uploaded display ad specification?", o: ["HTML5 or AMPHTML zip", "MP4 video", "Text only", "Word doc"], c: 0, e: "You can upload custom built HTML5 or AMPHTML ads as zip files." },
+        { t: "Which setting prevents ads on mobile apps?", o: ["Device Targeting exclusions", "Location exclusions", "Topic exclusions", "Keyword exclusions"], c: 0, e: "You can uncheck 'Mobile App' categories or devices in placement exclusions." },
+        { t: "What is 'Optimized Targeting'?", o: ["Finds users likely to convert beyond selections", "Restricts to keywords", "Targets only existing customers", "Manual targeting"], c: 0, e: "Optimized targeting looks for people likely to convert, even if they are outside your manually selected audience signals." },
+        { t: "Primary metric for a Direct Response Display campaign?", o: ["Conversions / CPA", "Impressions", "Reach", "Video Views"], c: 0, e: "Direct response is about action, so Conversions and Cost Per Action are key." },
+        { t: "Which asset is NOT part of a Responsive Display Ad?", o: ["Keywords", "Headlines", "Descriptions", "Images/Logos"], c: 0, e: "Keywords are a targeting method, not a creative asset you upload into the ad unit itself." },
+        { t: "What does 'Pay for Conversions' require?", o: ["Target CPA and historical conversions", "Manual CPC", "Target ROAS", "vCPM"], c: 0, e: "Pay for Conversions is only available when using Target CPA and having a certain conversion history." },
+        { t: "Dynamic Remarketing differs from standard by?", o: ["Showing specific products viewed", "Showing generic brand ads", "Using video", "Targeting new users"], c: 0, e: "Dynamic remarketing shows the specific products or services people viewed on your site." },
+        { t: "What is a 'Custom Segment' based on search terms?", o: ["Users who searched terms on Google properties", "Users reading email", "Users watching TV", "Demographics"], c: 0, e: "On Display, this targets people who searched for those terms on Google, or terms related to them." },
+        { t: "Benefit of HTML5 ads?", o: ["Interactive/Animated capability", "Cheaper", "Easier to make", "Text only"], c: 0, e: "HTML5 allows for rich media, animation, and interactivity that standard image ads cannot provide." },
+        { t: "Where do Display ads appear?", o: ["Google Display Network (3M+ sites/apps)", "Search results only", "Shopping tab", "Maps only"], c: 0, e: "The GDN covers over 3 million websites and apps." },
+        { t: "Standard aspect ratios for RDA images?", o: ["1.91:1 and 1:1", "16:9 only", "4:3 only", "Vertical only"], c: 0, e: "You generally need a Landscape (1.91:1) and a Square (1:1) image." },
+        { t: "What is 'Life Events' targeting?", o: ["Moving, Marriage, Graduation", "Sports fans", "Shoppers", "Age/Gender"], c: 0, e: "Life Events target users at major milestones like moving, getting married, or graduating." },
+        { t: "How to target specific websites?", o: ["Placements", "Topics", "Keywords", "Audiences"], c: 0, e: "Managed Placements allow you to select specific websites, videos, or apps." },
+        { t: "Metric for brand awareness?", o: ["Reach / Impressions", "Clicks", "Conversions", "Bounce rate"], c: 0, e: "For awareness, you care about how many people saw the ad (Reach/Impressions)." },
+        { t: "Google's viewability standard?", o: ["50% pixels for 1 sec (Display)", "100% for 5 sec", "Any pixel", "Click only"], c: 0, e: "A display ad is viewable if 50% of its area is visible for at least 1 second." }
+    ],
+    'ads-video': [
+        { t: "Format skippable after 5 seconds?", o: ["Skippable in-stream", "Non-skippable", "Bumper", "Outstream"], c: 0, e: "Skippable in-stream ads allow the viewer to skip after 5 seconds." },
+        { t: "ABCD framework stands for?", o: ["Attract, Brand, Connect, Direct", "Action, Brand, Conversion, Data", "Audience, Bid, Creative, Duration", "Attention, Buy, Click, Drive"], c: 0, e: "Google's creative guidance: Attract attention, Brand naturally, Connect with emotion, Direct action." },
+        { t: "Best format for short, non-skippable message?", o: ["Bumper ads (6s)", "TrueView", "Masthead", "Discovery"], c: 0, e: "Bumper ads are 6 seconds or shorter and cannot be skipped." },
+        { t: "Tool to measure Brand Lift?", o: ["Brand Lift Study", "Conversion Tracking", "Analytics", "Reach Planner"], c: 0, e: "Brand Lift uses surveys to measure the effectiveness of video ads on metrics like Ad Recall and Brand Awareness." },
+        { t: "Where do In-Feed Video ads appear?", o: ["Search results / Watch Next", "Inside videos", "Search Network", "Maps"], c: 0, e: "In-Feed ads appear in discovery places like YouTube search results, Watch Next, and the Home feed." },
+        { t: "Non-skippable in-stream length?", o: ["15s (or less)", "30s", "60s", "6s"], c: 0, e: "Non-skippable ads are 15 seconds (or shorter) and viewers must watch them before the video plays." },
+        { t: "Bidding for Conversions in Video?", o: ["Target CPA / Max Conversions", "CPV", "vCPM", "Target Impression Share"], c: 0, e: "For driving action/conversions, use Smart Bidding strategies like Target CPA or Maximize Conversions." },
+        { t: "Feature to browse products below video ad?", o: ["Product Feeds", "Sitelinks", "Lead Forms", "Banners"], c: 0, e: "Linking a Merchant Center feed allows product cards to appear below the video ad." },
+        { t: "Definition of a 'View' (Skippable)?", o: ["30s watch or interaction", "5s watch", "Thumbnail view", "Hover"], c: 0, e: "A view is counted when a user watches 30 seconds (or the full ad if shorter) OR interacts with the ad." },
+        { t: "Format for Homepage reach (Mobile/TV/Desktop)?", o: ["Masthead", "Bumper", "Outstream", "RDA"], c: 0, e: "The Masthead is a premium format placed at the top of the YouTube Home feed." },
+        { t: "Video Ad Sequencing?", o: ["Series of ads in order to same user", "Random ads", "Repeating ad", "Bid changing"], c: 0, e: "Sequencing lets you tell a story by showing ads to users in a specific defined order." },
+        { t: "Audience based on Google searches?", o: ["Custom Intent (YouTube)", "Affinity", "Demographics", "Life Events"], c: 0, e: "Custom Intent on YouTube targets users based on keywords they have recently searched on Google.com." },
+        { t: "Consideration bidding metric?", o: ["CPV", "CPA", "CPM", "ROAS"], c: 0, e: "Cost Per View (CPV) is standard for Consideration, as you pay for engagement/views." },
+        { t: "Where do Outstream ads appear?", o: ["Partner sites (outside YouTube)", "Homepage", "Pre-roll", "Search"], c: 0, e: "Outstream ads are mobile-only ads that appear on partner sites and apps (Google Video Partners), not on YouTube." },
+        { t: "Critical creative element in first 5s?", o: ["Pacing/Story arc (Attract)", "Slow fade", "Logo at end", "Silence"], c: 0, e: "You must capture attention (Attract) immediately because users can skip or scroll away." },
+        { t: "Main goal of Video Action Campaigns?", o: ["Drive conversions", "Views", "Impressions", "Likes"], c: 0, e: "Video Action Campaigns are designed to drive conversions using buttons and smart bidding." },
+        { t: "What is a Companion Banner?", o: ["Clickable image next to video (desktop)", "Text overlay", "End screen", "Video overlay"], c: 0, e: "A companion banner is a clickable image that appears next to the video player on desktop computers." },
+        { t: "How are Bumper ads charged?", o: ["CPM (Impressions)", "CPV", "CPA", "CPC"], c: 0, e: "Bumper ads use Target CPM bidding, so you pay for impressions." },
+        { t: "YouTube Analytics metric for retention?", o: ["Audience retention", "Bounce rate", "Click share", "Session duration"], c: 0, e: "Audience retention shows the percentage of viewers who are still watching at each moment of the video." },
+        { t: "Ad format that plays natively in apps/articles?", o: ["Outstream", "In-stream", "Discovery", "Masthead"], c: 0, e: "Outstream ads play automatically (muted) in banners or interstitials on partner mobile sites/apps." },
+        { t: "First step in creating a Video campaign?", o: ["Define Goal (Sales, Awareness, etc.)", "Upload video", "Set budget", "Choose audience"], c: 0, e: "Always start by selecting your campaign objective, as this determines which subtypes and bidding strategies are available." },
+        { t: "What is a 'YouTube Select' lineup?", o: ["Top 5% of popular channels (Pre-packaged)", "Random selection", "Lowest cost channels", "User generated"], c: 0, e: "YouTube Select offers pre-packaged lineups of the most popular, high-quality content on TV and YouTube." },
+        { t: "How does 'Maximize Lift' bidding work?", o: ["Optimizes for survey responses (Brand Lift)", "Optimizes for clicks", "Optimizes for views", "Optimizes for sales"], c: 0, e: "This strategy uses machine learning to get your ad in front of people most likely to report considering your brand (Lift)." },
+        { t: "Audience type 'Detailed Demographics' includes?", o: ["Homeownership, Education, Parenting", "Age/Gender", "Keywords", "Websites visited"], c: 0, e: "Detailed Demographics go beyond age/gender to include traits like homeownership, marital status, education, etc." },
+        { t: "Benefit of connected TV (CTV) ads?", o: ["High impact on big screen in living room", "Clickable", "Cheap", "Text only"], c: 0, e: "CTV allows you to reach users on the big screen in their living rooms, often co-viewing." },
+        { t: "Frequency goal for Brand Awareness?", o: ["Reach users multiple times to reinforce message", "Once per month", "As much as possible", "Never repeat"], c: 0, e: "For awareness, you typically want high reach, but also enough frequency for the user to remember the brand." },
+        { t: "What is the 'View rate' formula?", o: ["Views / Impressions", "Clicks / Impressions", "Cost / Views", "Views / Clicks"], c: 0, e: "View rate is the number of views divided by the number of impressions." },
+        { t: "Can you target specific YouTube Channels?", o: ["Yes, via Placements", "No, only topics", "No, only keywords", "No, only audiences"], c: 0, e: "You can target specific YouTube channels or videos using Placement targeting." },
+        { t: "What is a Lead Form Asset on YouTube?", o: ["Collects info (email/name) directly in ad", "Links to website", "Downloads PDF", "Shows map"], c: 0, e: "Lead forms allow users to submit their contact information without leaving YouTube." },
+        { t: "Purpose of 'Product & Brand Consideration' goal?", o: ["Influence users considering purchase", "Immediate sale", "Pure reach", "App download"], c: 0, e: "This goal focuses on getting people to engage with your brand or consider your products." }
+    ],
+    'ads-shopping': [
+        { t: "Required ID attribute in feed?", o: ["id", "mpn", "gtin", "brand"], c: 0, e: "The 'id' attribute is the unique identifier for each product in your feed." },
+        { t: "PMax vs Standard Shopping?", o: ["PMax uses automation across all inventory", "PMax is Search only", "Standard needs no feed", "PMax is manual"], c: 0, e: "Performance Max runs across all Google channels (YouTube, Display, Search, Discover, Gmail, Maps) using automation." },
+        { t: "Out of Stock behavior?", o: ["Stops showing automatically", "Charges double", "Shows label", "Manual pause needed"], c: 0, e: "If a product is marked 'out of stock' in the feed, ads for it stop serving automatically." },
+        { t: "Bid strategy for max revenue (fixed budget)?", o: ["Target ROAS", "Maximize Clicks", "Manual CPC", "Target Impression Share"], c: 0, e: "Target ROAS (Return On Ad Spend) optimizes for the highest conversion value (revenue)." },
+        { t: "Result of policy violation in feed?", o: ["Suspension / Disapproval", "Fine", "Second page rank", "Nothing"], c: 0, e: "Products violating policies are disapproved, and severe/repeated violations can suspend the account." },
+        { t: "Platform to manage feeds?", o: ["Merchant Center", "Google Ads", "Analytics", "My Business"], c: 0, e: "Google Merchant Center is where you upload and manage your product data feeds." },
+        { t: "Ads for physical store inventory?", o: ["Local Inventory Ads", "Showcase", "Smart Shopping", "Remarketing"], c: 0, e: "Local Inventory Ads show products available in a nearby physical store." },
+        { t: "How to bid differently on products (Standard)?", o: ["Subdivide Product Groups", "Keywords", "Ad copy", "Campaign name"], c: 0, e: "In Standard Shopping, you subdivide product groups (by brand, type, etc.) to set different bids." },
+        { t: "What is GTIN?", o: ["Global Trade Item Number", "Google Tracking ID", "Global Tax ID", "General Text Name"], c: 0, e: "GTIN (e.g., UPC, EAN) allows Google to identify exactly what product you are selling." },
+        { t: "How to show '15% Off'?", o: ["Merchant Promotions", "Ad Customizers", "Sitelinks", "Headline edit"], c: 0, e: "Merchant Promotions (Special Offers) allow you to display discount codes or offers on Shopping ads." },
+        { t: "Reason for 'Mismatched price'?", o: ["Feed price != Landing page price", "High price", "Low price", "Sale item"], c: 0, e: "Google crawls your site; if the price on the page doesn't match the feed, the product is disapproved." },
+        { t: "Purpose of Custom Labels?", o: ["Group products for bidding/reporting", "Change title", "Discount", "Change image"], c: 0, e: "Custom labels (0-4) let you group products by your own definitions (e.g., 'Seasonal', 'Best Seller') for bidding." },
+        { t: "Image requirement?", o: ["White background, non-pixelated", "Watermarks", "B&W", "Text overlay"], c: 0, e: "Main images must be high quality on a solid white background with no text overlays or watermarks." },
+        { t: "Advertising in multiple countries?", o: ["Add feed/rules for country/lang/currency", "Increase budget", "Duplicate account", "Translate site"], c: 0, e: "You can target new countries by adding a feed for that country or using feed rules if the language matches." },
+        { t: "Where to check feed errors?", o: ["Merchant Center Diagnostics", "Recommendations", "Analytics", "Search Console"], c: 0, e: "The Diagnostics tab in Merchant Center shows all item disapprovals and account issues." },
+        { t: "What is a Supplemental Feed?", o: ["Adds/updates data to primary feed", "Replaces primary feed", "Only for images", "Offline file"], c: 0, e: "Supplemental feeds add or correct data in your primary feed without altering the original source file." },
+        { t: "Policy on 'Adult' content?", o: ["Must be labeled in feed settings", "Banned", "Allowed freely", "Needs pixelation"], c: 0, e: "You must enable the 'Adult-oriented content' attribute so Google knows to restrict serving to appropriate audiences." },
+        { t: "Title optimization best practice?", o: ["Include key details (Brand, Size, Color) at start", "Keep it short", "Use all caps", "No details"], c: 0, e: "Users often only see the first few words, so put the most important attributes (Brand, Product Type, Specs) first." },
+        { t: "Shipping settings location?", o: ["Merchant Center", "Google Ads", "Feed file only", "Website"], c: 0, e: "Shipping rules are configured in Merchant Center (or via the feed)." },
+        { t: "What is a CSS (Comparison Shopping Service)?", o: ["Partner placing shopping ads on Google (EU)", "CSS style sheet", "Customer Service", "Shipping Service"], c: 0, e: "In the EEA (Europe), Shopping ads are placed via a CSS partner." },
+        { t: "How often should feed expire?", o: ["30 days", "Never", "7 days", "1 year"], c: 0, e: "Feeds expire after 30 days if not updated. You should upload daily or weekly." },
+        { t: "Best attribute for apparel variants?", o: ["item_group_id", "id", "brand", "color"], c: 0, e: "item_group_id clusters variants (size/color) of the same product together." },
+        { t: "What is 'Showcase Shopping' (Legacy/Pmax)?", o: ["Group of related products", "Single product", "Text ad", "Video"], c: 0, e: "Showcase ads allow you to display a collection of related products to introduce your brand." },
+        { t: "Can you use negative keywords in PMax Retail?", o: ["No (only at account level/support)", "Yes, freely", "Yes, in ad group", "Only positive"], c: 0, e: "PMax does not have keyword targeting, but you can add Account Level negatives or ask support to block terms." },
+        { t: "Smart Shopping replaced by?", o: ["Performance Max", "Standard Shopping", "Discovery", "Display"], c: 0, e: "Smart Shopping campaigns were upgraded to Performance Max." },
+        { t: "What is the 'condition' attribute?", o: ["new, refurbished, used", "good, bad", "1, 2, 3", "yes, no"], c: 0, e: "Accepted values are 'new', 'refurbished', and 'used'." },
+        { t: "If 'identifier_exists' is no?", o: ["Must be custom handmade/vintage", "You forgot GTIN", "It is rejected", "It is cheap"], c: 0, e: "Use 'no' for custom goods, vintage items, or things that genuinely do not have a GTIN/MPN." },
+        { t: "Targeting setting for Standard Shopping?", o: ["Inventory filter (Country/Feed)", "Keywords", "Placements", "Topics"], c: 0, e: "Shopping uses the Feed data (Inventory filter), not keywords, to target." },
+        { t: "Purpose of 'Automatic Item Updates'?", o: ["Syncs price/availability from site schema", "Updates images", "Rewrites titles", "Changes bids"], c: 0, e: "It crawls your site's structured data to automatically update price/availability in ads if the feed is slightly delayed." },
+        { t: "Where to claim website URL?", o: ["Merchant Center > Business Info", "Google Ads", "Analytics", "Hosting"], c: 0, e: "You must verify and claim your website URL in Merchant Center settings." }
+    ],
+    'analytics': [
+        { t: "Primary measurement unit in GA4?", o: ["Events", "Sessions", "Hits", "Bounce Rate"], c: 0, e: "GA4 is event-based. Everything, including a page view, is an event." },
+        { t: "Attribution model giving credit to last click?", o: ["Last Click", "Data-Driven", "Linear", "Time Decay"], c: 0, e: "Last Click gives 100% of the credit to the final touchpoint." },
+        { t: "Feature for custom user journey viz?", o: ["Explorations", "Admin", "Advertising", "Real-time"], c: 0, e: "Explorations allow for advanced, custom data visualization like funnels and pathing." },
+        { t: "User Property vs Event Parameter?", o: ["Property describes user; Parameter describes interaction", "Same thing", "Property changes per hit", "Parameters for ecommerce"], c: 0, e: "User Properties are attributes of the user (e.g., Location, Language), while Parameters describe context of a specific event." },
+        { t: "GA4 data retention (Explorations)?", o: ["2 months or 14 months", "50 months", "Indefinite", "24 hours"], c: 0, e: "You can set data retention for user-level data to either 2 months (default) or 14 months." },
+        { t: "Metric replacing Bounce Rate?", o: ["Engagement Rate", "Exit Rate", "Session Duration", "Pageviews"], c: 0, e: "Engagement Rate is the inverse of Bounce Rate (Sessions that lasted 10s+, had a conversion, or 2+ pageviews)." },
+        { t: "Auto-track scroll/video/download?", o: ["Enhanced Measurement", "GTM", "Data Import", "User-ID"], c: 0, e: "Enhanced Measurement automatically tracks common events like scrolls, outbound clicks, and video plays." },
+        { t: "What is a Data Stream?", o: ["Data source (iOS, Android, Web)", "Revenue", "Ads link", "Report"], c: 0, e: "A Data Stream is the flow of data from a specific customer touchpoint (e.g., an App or Website) to Analytics." },
+        { t: "Cross-device user recognition?", o: ["User-ID / Google Signals", "Device ID", "IP", "Referral"], c: 0, e: "User-ID and Google Signals allow GA4 to unify user behavior across different devices." },
+        { t: "Report for channel contribution?", o: ["Conversion Paths", "Realtime", "Tech", "Retention"], c: 0, e: "The Conversion Paths report in the Advertising section shows how different channels worked together." },
+        { t: "BigQuery usage?", o: ["Export raw data for analysis", "Simple charts", "Ads management", "Coding"], c: 0, e: "BigQuery integration allows you to export raw, unsampled event data for advanced SQL analysis." },
+        { t: "Defining Conversions in GA4?", o: ["Mark Event as Conversion", "Goal by URL", "Automatic", "Merchant Center"], c: 0, e: "In GA4, you simply toggle a switch to mark any specific Event as a Conversion." },
+        { t: "Purpose of DebugView?", o: ["Verify incoming events real-time", "Fix links", "Debug ads", "Check speed"], c: 0, e: "DebugView allows you to monitor events coming from a debug device in real-time to ensure tags are firing correctly." },
+        { t: "Filter internal traffic?", o: ["Admin > Data Settings > Data Filters", "Acquisition", "Explore", "Advertising"], c: 0, e: "You define internal IP addresses in Data Streams, then activate the filter in Data Settings." },
+        { t: "Events per active user metric?", o: ["Event count per user", "Events per session", "Views per user", "Stickiness"], c: 0, e: "This shows the average number of events triggered by an active user." },
+        { t: "What is 'Google Signals'?", o: ["Enables cross-device tracking/demographics for signed-in users", "A wifi tool", "Search console link", "Tag Manager"], c: 0, e: "Google Signals aggregates data from users signed into Google to enable cross-device reporting and demographics." },
+        { t: "What is an 'Audience' in GA4 used for?", o: ["Remarketing in Ads and Reporting", "Internal reporting only", "Email lists", "Nothing"], c: 0, e: "Audiences can be used to filter reports or exported to Google Ads for remarketing." },
+        { t: "Default attribution model in GA4?", o: ["Data-driven", "Last Click", "First Click", "Linear"], c: 0, e: "GA4 defaults to Data-driven attribution, which uses algorithms to assign credit." },
+        { t: "Exploration technique to see steps users take?", o: ["Path exploration", "Funnel", "Free form", "Cohort"], c: 0, e: "Path exploration visualizes the sequence of pages and events users triggered." },
+        { t: "Exploration to see overlap between segments?", o: ["Segment overlap", "Path", "Cohort", "User lifetime"], c: 0, e: "Segment overlap shows the intersection of different user groups (e.g., Mobile users vs Converters)." },
+        { t: "Scope of Custom Dimensions?", o: ["Event or User", "Session only", "Product only", "Hit only"], c: 0, e: "Custom dimensions in GA4 are scoped to either the Event level or the User level." },
+        { t: "Conversion counting method option?", o: ["Once per event or Once per session", "Always once per user", "Unlimited", "None"], c: 0, e: "You can choose to count a conversion every time the event occurs, or only once per session." },
+        { t: "Automated Insights feature?", o: ["ML detects unusual changes/trends", "Writes reports", "Sends emails", "Predicts stock"], c: 0, e: "Analytics Intelligence uses machine learning to highlight anomalies or emerging trends automatically." },
+        { t: "Where to link Google Ads?", o: ["Admin > Product Links", "Advertising", "Explore", "Home"], c: 0, e: "Linkages are managed in the Admin panel under 'Product Links'." },
+        { t: "What is 'Unassigned' in traffic acquisition?", o: ["Traffic GA4 cannot match to rules", "Direct traffic", "Bot traffic", "Paid search"], c: 0, e: "Unassigned means GA4 could not match the source/medium parameters to its default channel grouping rules." },
+        { t: "Purpose of 'Measurement Protocol'?", o: ["Send data from offline/server to GA4", "Measure page speed", "Cookie consent", "Tag installation"], c: 0, e: "Measurement Protocol allows you to send events directly to GA4 servers via HTTP requests (e.g., from a POS system)." },
+        { t: "Metric: Engaged Sessions?", o: ["Lasted >10s, had conversion, or 2+ views", "Any session", "Bounce session", "Clicks only"], c: 0, e: "An engaged session is one that lasted longer than 10 seconds, had a conversion event, or had at least 2 pageviews." },
+        { t: "Report to see retention by cohort?", o: ["Cohort exploration", "Funnel", "Path", "Realtime"], c: 0, e: "Cohort exploration groups users by a common characteristic (usually acquisition date) to track retention over time." },
+        { t: "SKAdNetwork integration?", o: ["For iOS App conversion measurement", "Android only", "Web only", "Server side"], c: 0, e: "This helps measure app installs and conversions on iOS devices while preserving user privacy." },
+        { t: "Limit of distinctive events in GA4?", o: ["No limit (but 500 distinct event names for app)", "10", "100", "1 million"], c: 0, e: "There is no limit on total event volume, but distinct event *names* are limited per property." }
+    ]
+};
+
+// STATE
+const state = {
+    selectedCert: null,
+    questionSet: [], 
+    userAnswers: [], 
+    currentIdx: 0,
+    examLength: 30
+};
+
+// DOM ELEMENTS
+const screens = {
+    selection: document.getElementById('selection-screen'),
+    exam: document.getElementById('exam-screen'),
+    result: document.getElementById('result-screen')
+};
+const els = {
+    certGrid: document.getElementById('cert-grid'),
+    startBtn: document.getElementById('start-btn'),
+    qText: document.getElementById('question-text'),
+    optsContainer: document.getElementById('options-container'),
+    feedbackBox: document.getElementById('feedback-box'),
+    qCount: document.getElementById('question-count'),
+    certLabel: document.getElementById('cert-label'),
+    prevBtn: document.getElementById('prev-btn'),
+    nextBtn: document.getElementById('next-btn'),
+    finishBtn: document.getElementById('finish-btn'),
+    progress: document.getElementById('progress-fill'),
+    scoreCircle: document.getElementById('score-circle'),
+    scoreFraction: document.getElementById('score-fraction'),
+    resultMsg: document.getElementById('result-message'),
+    retakeBtn: document.getElementById('retake-btn'),
+    homeBtn: document.getElementById('home-btn')
+};
+
+// UTILS
+function shuffleArray(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function switchScreen(name) {
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+    window.scrollTo(0,0);
+}
+
+// INITIALIZATION
+function init() {
+    const certNames = {
+        'ads-search': 'Google Ads Search',
+        'ads-display': 'Google Ads Display',
+        'ads-video': 'Google Ads Video',
+        'ads-shopping': 'Google Ads Shopping',
+        'analytics': 'Google Analytics 4'
+    };
+    
+    els.certGrid.innerHTML = Object.keys(questionPools).map(k => 
+        `<div class="cert-option" data-id="${k}" onclick="selectCert(this)">
+            ${certNames[k]}<br>
+            <span style="font-size:0.8em;color:#5f6368">${questionPools[k].length} Questions</span>
+        </div>`
+    ).join('');
+}
+
+window.selectCert = function(el) {
+    document.querySelectorAll('.cert-option').forEach(d => d.classList.remove('selected'));
+    el.classList.add('selected');
+    state.selectedCert = el.dataset.id;
+    els.startBtn.disabled = false;
+    els.startBtn.innerText = "Start Exam";
+};
+
+// EXAM LOGIC
+els.startBtn.addEventListener('click', generateExam);
+
+function generateExam() {
+    const pool = questionPools[state.selectedCert];
+    
+    // 1. Shuffle Pool
+    const shuffledPool = shuffleArray([...pool]);
+    
+    // 2. Select up to 30
+    const selectedCount = Math.min(30, shuffledPool.length);
+    const selectedQuestions = shuffledPool.slice(0, selectedCount);
+    
+    // 3. Prepare State (Shuffle Options)
+    state.questionSet = selectedQuestions.map(q => {
+        let indices = Array.from(Array(q.o.length).keys()); // [0,1,2,3]
+        indices = shuffleArray(indices);
+        return {
+            text: q.t,
+            options: indices.map(i => q.o[i]),
+            correctIndex: indices.indexOf(q.c),
+            explanation: q.e || "No explanation available for this question." // Fallback if missing
+        };
+    });
+    
+    state.currentIdx = 0;
+    state.userAnswers = new Array(state.questionSet.length).fill(null);
+    state.examLength = state.questionSet.length;
+    
+    switchScreen('exam');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const q = state.questionSet[state.currentIdx];
+    const isAnswered = state.userAnswers[state.currentIdx] !== null;
+    
+    // Reset UI
+    els.feedbackBox.style.display = 'none';
+    els.feedbackBox.className = 'feedback-box';
+
+    // Update Meta
+    els.certLabel.innerText = document.querySelector('.cert-option.selected').childNodes[0].nodeValue.trim(); 
+    els.qCount.innerText = `Question ${state.currentIdx + 1} of ${state.examLength}`;
+    els.progress.style.width = `${((state.currentIdx + 1) / state.examLength) * 100}%`;
+    
+    // Text
+    els.qText.innerText = q.text;
+    
+    // Options
+    els.optsContainer.innerHTML = q.options.map((opt, i) => {
+        // Determine classes based on answer state
+        let classes = 'option-label';
+        let checked = '';
+        
+        if (isAnswered) {
+            classes += ' disabled';
+            // Highlight Correct Answer Green always
+            if (i === q.correctIndex) {
+                classes += ' correct';
+            }
+            // Highlight User Selection Red if wrong
+            if (state.userAnswers[state.currentIdx] === i && i !== q.correctIndex) {
+                classes += ' wrong';
+            }
+            if (state.userAnswers[state.currentIdx] === i) checked = 'checked';
+        }
+
+        return `
+        <label class="${classes}">
+            <input type="radio" name="opt" class="option-input" value="${i}" 
+                ${checked} 
+                ${isAnswered ? 'disabled' : ''}
+                onchange="handleSelection(${i})">
+            <span>${opt}</span>
+        </label>`
+    }).join('');
+    
+    // Re-show feedback if already answered (scenarios where user clicked Prev then Next)
+    if(isAnswered) {
+        showFeedback(state.userAnswers[state.currentIdx]);
+    }
+
+    // Buttons
+    els.prevBtn.disabled = state.currentIdx === 0;
+    
+    if (state.currentIdx === state.examLength - 1) {
+        els.nextBtn.classList.add('hidden');
+        els.finishBtn.classList.remove('hidden');
+    } else {
+        els.nextBtn.classList.remove('hidden');
+        els.finishBtn.classList.add('hidden');
+    }
+}
+
+window.handleSelection = function(i) {
+    // 1. Save Answer
+    state.userAnswers[state.currentIdx] = i;
+
+    // 2. Re-render options to lock them and show colors
+    renderQuestion();
+
+    // 3. Show Explanation
+    showFeedback(i);
+};
+
+function showFeedback(userIndex) {
+    const q = state.questionSet[state.currentIdx];
+    const isCorrect = userIndex === q.correctIndex;
+
+    els.feedbackBox.innerHTML = `
+        <span class="feedback-title">${isCorrect ? '✅ Correct' : '❌ Incorrect'}</span>
+        ${q.explanation}
+    `;
+    els.feedbackBox.className = `feedback-box ${isCorrect ? 'correct' : 'wrong'}`;
+    els.feedbackBox.style.display = 'block';
+}
+
+// NAV
+els.prevBtn.addEventListener('click', () => {
+    if (state.currentIdx > 0) { state.currentIdx--; renderQuestion(); }
+});
+els.nextBtn.addEventListener('click', () => {
+    if (state.currentIdx < state.examLength - 1) { state.currentIdx++; renderQuestion(); }
+});
+els.finishBtn.addEventListener('click', calculateResults);
+
+// SCORING
+function calculateResults() {
+    let score = 0;
+    state.questionSet.forEach((q, i) => {
+        if (state.userAnswers[i] === q.correctIndex) score++;
+    });
+    
+    const pct = Math.round((score / state.examLength) * 100);
+    const passed = pct >= 80;
+    
+    els.scoreCircle.innerText = `${pct}%`;
+    els.scoreCircle.className = `score-circle ${passed ? 'pass' : 'fail'}`;
+    els.scoreFraction.innerText = `${score}/${state.examLength}`;
+    els.resultMsg.innerText = passed ? "Congratulations! You Passed." : "Keep Studying. You didn't pass.";
+    els.resultMsg.style.color = passed ? "var(--success)" : "var(--danger)";
+    
+    switchScreen('result');
+}
+
+// RESET
+els.retakeBtn.addEventListener('click', generateExam);
+els.homeBtn.addEventListener('click', () => {
+    switchScreen('selection');
+    state.selectedCert = null;
+    document.querySelectorAll('.cert-option').forEach(d => d.classList.remove('selected'));
+    els.startBtn.disabled = true;
+    els.startBtn.innerText = "Start Exam";
+});
+
+init();
+
+</script>
+</body>
+</html>

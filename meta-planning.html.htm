@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta Certified Media Planning Professional | Ultimate Study Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Custom Utilities */
+        .funnel-layer {
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .funnel-layer:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+        .nav-item.active {
+            border-bottom: 3px solid #059669; /* Emerald 600 */
+            color: #047857; /* Emerald 700 */
+            font-weight: 700;
+        }
+        .unit-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 6px;
+            font-weight: 700;
+            display: inline-block;
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans leading-relaxed">
+
+    <!-- App Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen flex flex-col">
+
+        <!-- Header -->
+        <header class="mb-6 text-center sm:text-left border-b border-slate-200 pb-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Meta Media <span class="text-emerald-600">Planning</span> Master Guide</h1>
+                    <p class="mt-2 text-slate-500 text-sm max-w-2xl">
+                        Complete coverage of Units 1-11 from the Feb 2025 Study Guide.
+                        Includes Budget Calculator, MMM/MTA, and Privacy Policies.
+                    </p>
+                </div>
+                <div class="mt-4 sm:mt-0 flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs text-slate-400 font-semibold uppercase">Exam Code</p>
+                        <p class="text-sm text-slate-600 font-medium">400-101</p>
+                    </div>
+                    <div class="bg-emerald-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">
+                        P
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation (Grouped by Logic) -->
+        <nav class="flex space-x-6 overflow-x-auto no-scrollbar mb-8 border-b border-slate-200">
+            <button onclick="switchTab('core')" id="nav-core" class="nav-item active pb-3 px-1 text-slate-600 hover:text-emerald-600 whitespace-nowrap transition-colors">
+                1. Core Setup (U1-3)
+            </button>
+            <button onclick="switchTab('budget')" id="nav-budget" class="nav-item pb-3 px-1 text-slate-600 hover:text-emerald-600 whitespace-nowrap transition-colors">
+                2. Budget & Calculator (U4)
+            </button>
+            <button onclick="switchTab('delivery')" id="nav-delivery" class="nav-item pb-3 px-1 text-slate-600 hover:text-emerald-600 whitespace-nowrap transition-colors">
+                3. Audience & Creative (U5-7)
+            </button>
+            <button onclick="switchTab('measurement')" id="nav-measurement" class="nav-item pb-3 px-1 text-slate-600 hover:text-emerald-600 whitespace-nowrap transition-colors">
+                4. Measurement (U8)
+            </button>
+            <button onclick="switchTab('policy')" id="nav-policy" class="nav-item pb-3 px-1 text-slate-600 hover:text-emerald-600 whitespace-nowrap transition-colors">
+                5. Policy & Safety (U9-11)
+            </button>
+            <button onclick="switchTab('exam')" id="nav-exam" class="nav-item pb-3 px-1 text-slate-600 hover:text-emerald-600 whitespace-nowrap transition-colors">
+                Exam Simulator
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main id="content-area" class="flex-grow">
+            
+            <!-- MODULE 1: CORE SETUP (Units 1, 2, 3) -->
+            <section id="view-core" class="space-y-8 fade-in">
+                
+                <!-- Unit 1: Core Campaign Elements -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 1</span>
+                        <h2 class="text-xl font-bold text-slate-800">Core Campaign Elements</h2>
+                    </div>
+                    <p class="text-sm text-slate-600 mb-4">
+                        <strong>Liquidity</strong> is key. Restricting placements, audiences, or budgets reduces liquidity and hurts performance.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border-l-4 border-emerald-500 bg-emerald-50 p-4 rounded-r">
+                            <h3 class="font-bold text-emerald-900">Campaign Structure</h3>
+                            <ul class="text-sm text-emerald-800 mt-2 space-y-1">
+                                <li><strong>Campaign:</strong> Objective, Buying Type, CBO.</li>
+                                <li><strong>Ad Set:</strong> Audience, Placement, Budget (if manual), Schedule, Bidding.</li>
+                                <li><strong>Ad:</strong> Creative, Copy, URL.</li>
+                            </ul>
+                        </div>
+                        <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r">
+                            <h3 class="font-bold text-blue-900">Automation (Meta Advantage)</h3>
+                            <ul class="text-sm text-blue-800 mt-2 space-y-1">
+                                <li><strong>Complete Solutions:</strong> Advantage+ Shopping (ASC), Advantage+ App Campaigns.</li>
+                                <li><strong>Single-Step:</strong> Advantage+ Placements, Audience, Creative.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unit 2: Buying Types -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 2</span>
+                        <h2 class="text-xl font-bold text-slate-800">Buying Types</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white border p-4 rounded-lg shadow-sm">
+                            <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2">🔨 Auction</h3>
+                            <p class="text-xs text-slate-500 mb-3">Maximizes efficiency & flexibility.</p>
+                            <ul class="text-sm text-slate-700 list-disc list-inside">
+                                <li><strong>Pricing:</strong> Dynamic CPM (Fluctuates).</li>
+                                <li><strong>Bid Strategies:</strong> Highest Volume, Highest Value, Cost per Result, ROAS, Bid Cap.</li>
+                                <li><strong>Best for:</strong> Always-on, Direct Response.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white border p-4 rounded-lg shadow-sm ring-1 ring-emerald-200">
+                            <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2">📅 Reservation (Reach & Freq)</h3>
+                            <p class="text-xs text-slate-500 mb-3">Maximizes predictability.</p>
+                            <ul class="text-sm text-slate-700 list-disc list-inside">
+                                <li><strong>Pricing:</strong> Fixed CPM. Guaranteed Delivery.</li>
+                                <li><strong>Frequency:</strong> Target Frequency or Cap.</li>
+                                <li><strong>Sequencing:</strong> Tell a story in order (Ad 1 -> Ad 2).</li>
+                                <li><strong>Constraints:</strong> Min 200k reach. No exclusions allowed.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unit 3: Objectives -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 3</span>
+                        <h2 class="text-xl font-bold text-slate-800">Objectives & Data Sources</h2>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-2">
+                            <div onclick="updateFunnel('awareness')" class="funnel-layer bg-slate-200 hover:bg-slate-300 h-16 flex items-center justify-center text-slate-700 font-bold text-sm">AWARENESS (Reach, Recall)</div>
+                            <div onclick="updateFunnel('consideration')" class="funnel-layer bg-slate-300 hover:bg-slate-400 h-16 w-5/6 mx-auto flex items-center justify-center text-slate-800 font-bold text-sm">CONSIDERATION (Traffic, Engagement, Leads, App)</div>
+                            <div onclick="updateFunnel('conversion')" class="funnel-layer bg-emerald-500 hover:bg-emerald-600 h-16 w-2/3 mx-auto flex items-center justify-center text-white font-bold text-sm">CONVERSION (Sales)</div>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 h-full">
+                            <h3 id="funnel-title" class="font-bold text-slate-800 mb-2">Select a Stage</h3>
+                            <div id="funnel-content" class="text-sm text-slate-600 space-y-2">
+                                Click the funnel to see aligned objectives and required data sources.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 2: BUDGET & CALCULATOR (Unit 4) -->
+            <section id="view-budget" class="hidden space-y-8 fade-in">
+                
+                <!-- Unit 4: Budget Strategy -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 4</span>
+                        <h2 class="text-xl font-bold text-slate-800">Budget Strategy</h2>
+                    </div>
+                    
+                    <!-- Strategy Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        <div class="p-3 bg-slate-50 border rounded">
+                            <strong class="block text-slate-900">Advantage+ Campaign Budget (CBO)</strong>
+                            <p class="text-xs text-slate-600 mt-1">Centralized budget. System distributes to best ad sets. Best for efficiency. Don't use if you need strict spend limits per audience.</p>
+                        </div>
+                        <div class="p-3 bg-slate-50 border rounded">
+                            <strong class="block text-slate-900">Lifetime Budget</strong>
+                            <p class="text-xs text-slate-600 mt-1">Required for <strong>Ad Scheduling (Dayparting)</strong>. System spends more on high-opportunity days.</p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Calculator -->
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                            🧮 Media Planning Calculator
+                        </h3>
+                        <p class="text-sm text-emerald-800 mb-4">
+                            Based on the "Wind & Wool" example (Pg 44). Calculate the minimum budget needed to achieve a sales goal.
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Inputs -->
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-700 uppercase">Daily Sales Goal ($)</label>
+                                    <input type="number" id="calc-sales-goal" value="100000" class="w-full p-2 border rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-700 uppercase">Campaign Duration (Days)</label>
+                                    <input type="number" id="calc-days" value="14" class="w-full p-2 border rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-700 uppercase">Avg Purchase Order ($)</label>
+                                    <input type="number" id="calc-aov" value="100" class="w-full p-2 border rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-700 uppercase">Max Cost Per Result ($)</label>
+                                    <input type="number" id="calc-cpa" value="20" class="w-full p-2 border rounded text-sm">
+                                </div>
+                                <button onclick="calculateBudget()" class="w-full py-2 bg-emerald-600 text-white font-bold rounded hover:bg-emerald-700 transition">Calculate Budget</button>
+                            </div>
+
+                            <!-- Results -->
+                            <div class="bg-white p-4 rounded border border-emerald-200">
+                                <h4 class="font-bold text-slate-700 mb-2">Results:</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Total Sales Goal:</span>
+                                        <span id="res-total-sales" class="font-mono font-bold">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Total Orders Needed:</span>
+                                        <span id="res-orders" class="font-mono font-bold">-</span>
+                                    </div>
+                                    <div class="border-t pt-2 mt-2 flex justify-between text-emerald-700 text-lg">
+                                        <span class="font-bold">Est. Minimum Budget:</span>
+                                        <span id="res-budget" class="font-bold">-</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-4 italic">Formula: (Daily Goal * Days) / AOV * CPA</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 3: AUDIENCE & CREATIVE (Units 5, 6, 7) -->
+            <section id="view-delivery" class="hidden space-y-8 fade-in">
+                
+                <!-- Unit 5: Audiences -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 5</span>
+                        <h2 class="text-xl font-bold text-slate-800">Audience Strategy</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <details class="group bg-slate-50 rounded-lg p-3">
+                            <summary class="font-bold text-slate-700 cursor-pointer">Advantage+ Audience (Broad)</summary>
+                            <p class="text-sm text-slate-600 mt-2 pl-4">
+                                Allows AI to find audience beyond your inputs. You provide suggestions (Age 18-35), but system can go broader (35+) if it finds cheaper conversions.
+                            </p>
+                        </details>
+                        <details class="group bg-slate-50 rounded-lg p-3">
+                            <summary class="font-bold text-slate-700 cursor-pointer">Custom Audiences (Warm)</summary>
+                            <div class="text-sm text-slate-600 mt-2 pl-4">
+                                <strong>Sources:</strong> Website (Pixel), App (SDK), Customer List (Hashed Email), Engagement (Video views).
+                            </div>
+                        </details>
+                        <details class="group bg-slate-50 rounded-lg p-3">
+                            <summary class="font-bold text-slate-700 cursor-pointer">Lookalike Audiences (LAL)</summary>
+                            <p class="text-sm text-slate-600 mt-2 pl-4">
+                                Reaches new people similar to your best customers. Source must have 100+ people.
+                                <br><strong>1%</strong> = High Similarity (Narrow). <strong>10%</strong> = High Reach (Broad).
+                            </p>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- Unit 6: Placements -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 6</span>
+                        <h2 class="text-xl font-bold text-slate-800">Placements</h2>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-1 p-4 border rounded bg-emerald-50 border-emerald-100">
+                            <strong class="text-emerald-900">Advantage+ Placements</strong>
+                            <p class="text-xs text-emerald-800 mt-1">
+                                <strong>Recommended.</strong> Delivers to all available placements (FB, IG, Messenger, AN). System finds cheapest result.
+                            </p>
+                        </div>
+                        <div class="flex-1 p-4 border rounded bg-white">
+                            <strong class="text-slate-900">Manual Placements</strong>
+                            <p class="text-xs text-slate-600 mt-1">
+                                Use only for strict <strong>Brand Safety</strong> (e.g. avoid Audience Network) or specific creative limitations.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unit 7: Creative -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 7</span>
+                        <h2 class="text-xl font-bold text-slate-800">Ad Creative</h2>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-4">
+                        <div class="bg-slate-50 p-2 rounded border"><strong>Carousel:</strong> Storytelling, multiple products.</div>
+                        <div class="bg-slate-50 p-2 rounded border"><strong>Collection:</strong> Mobile-only, product grid.</div>
+                        <div class="bg-slate-50 p-2 rounded border"><strong>Instant Experience:</strong> Fast-loading native page.</div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded border border-yellow-200 text-sm text-yellow-800">
+                        <strong>Creative Fatigue:</strong> Performance drops due to overexposure. <br>
+                        <strong>Fix:</strong> Refresh creative, expand audience, or use Advantage+ Creative.
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 4: MEASUREMENT (Unit 8) -->
+            <section id="view-measurement" class="hidden space-y-8 fade-in">
+                
+                <!-- Unit 8: Reporting -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 8</span>
+                        <h2 class="text-xl font-bold text-slate-800">Campaign Reporting & Measurement</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Tests -->
+                        <div>
+                            <h3 class="font-bold text-slate-700 mb-3 border-b pb-1">1. Lift Tests (Incrementality)</h3>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-slate-50 rounded border">
+                                    <strong>Brand Lift:</strong> Measures <em>Recall, Awareness</em> via surveys (Test vs Control).
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded border">
+                                    <strong>Conversion Lift:</strong> Measures <em>Incremental Sales</em>. Gold standard. Uses a holdout group that sees NO ads.
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded border">
+                                    <strong>A/B Test:</strong> Compares variables (Creative A vs B). Deterministic.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Models -->
+                        <div>
+                            <h3 class="font-bold text-slate-700 mb-3 border-b pb-1">2. Advanced Modeling</h3>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-emerald-50 rounded border border-emerald-100">
+                                    <strong>Marketing Mix Modeling (MMM):</strong>
+                                    <p class="text-xs text-slate-600">Statistical analysis of sales vs ALL marketing (TV, Radio, Meta, etc.). Good for budget allocation across channels. Privacy-resilient.</p>
+                                </div>
+                                <div class="p-3 bg-blue-50 rounded border border-blue-100">
+                                    <strong>Multi-Touch Attribution (MTA):</strong>
+                                    <p class="text-xs text-slate-600">Assigns credit to multiple touchpoints in a journey. Good for understanding the path to purchase.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 5: POLICY & SAFETY (Units 9, 10, 11) -->
+            <section id="view-policy" class="hidden space-y-8 fade-in">
+                
+                <!-- Unit 9: Data Privacy -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 9</span>
+                        <h2 class="text-xl font-bold text-slate-800">Data Privacy Policies</h2>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div class="p-3 border rounded">
+                            <strong class="block text-emerald-800">GDPR (EU) / LGPD (Brazil)</strong>
+                            Requires explicit consent for data processing. Can lead to signal loss.
+                        </div>
+                        <div class="p-3 border rounded">
+                            <strong class="block text-emerald-800">CCPA (California)</strong>
+                            Right to opt-out of data sale. "Limited Data Use" flag restricts data usage.
+                        </div>
+                        <div class="p-3 border rounded">
+                            <strong class="block text-emerald-800">HIPAA (USA)</strong>
+                            Prohibits sharing health data. Healthcare advertisers must not use Pixel for sensitive data.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unit 10: Brand Safety -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 10</span>
+                        <h2 class="text-xl font-bold text-slate-800">Brand Safety Controls</h2>
+                    </div>
+                    <ul class="space-y-3 text-sm text-slate-700">
+                        <li class="flex items-start gap-2">
+                            <span class="bg-slate-200 px-2 rounded font-bold">Inventory Filters</span>
+                            <span>Expanded (High risk), Moderate (Default), Limited (Strict). Excludes sensitive content tiers.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="bg-slate-200 px-2 rounded font-bold">Block Lists</span>
+                            <span>Prevent ads from running on specific apps/websites (Audience Network).</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="bg-slate-200 px-2 rounded font-bold">Topic Exclusions</span>
+                            <span>Prevent ads from appearing on Facebook In-Stream Video related to Gaming, Politics, etc.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Unit 11: Ad Review -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="unit-tag">Unit 11</span>
+                        <h2 class="text-xl font-bold text-slate-800">Ad Review & Rejections</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-red-50 p-4 rounded border border-red-200">
+                            <h3 class="font-bold text-red-800 mb-2">🚫 Prohibited (Rejected)</h3>
+                            <ul class="text-xs text-red-800 space-y-2 list-disc list-inside">
+                                <li><strong>Personal Attributes:</strong> "You are 25" or "Meet other seniors". (Implies knowledge).</li>
+                                <li><strong>Sensational Content:</strong> Shocking, gore.</li>
+                                <li><strong>Misleading Buttons:</strong> Fake play buttons on images.</li>
+                                <li><strong>Unrealistic Results:</strong> "Lose 10lbs in 2 days".</li>
+                            </ul>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded border border-orange-200">
+                            <h3 class="font-bold text-orange-800 mb-2">⚠️ Restricted (Requires Permission)</h3>
+                            <ul class="text-xs text-orange-800 space-y-2 list-disc list-inside">
+                                <li>Alcohol, Dating, Gambling.</li>
+                                <li>Financial Services / Crypto.</li>
+                                <li>Social Issues, Elections, Politics.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EXAM SIMULATOR -->
+            <section id="view-exam" class="hidden space-y-8 fade-in">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4">Exam Scenario Simulator</h2>
+                    <div id="quiz-container" class="space-y-6"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-slate-400 text-sm pb-8 border-t border-slate-200 pt-6">
+            <p>Aligned with Meta Media Planning Study Guide Feb 2025.</p>
+        </footer>
+
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data: Funnel ---
+        const funnelData = {
+            awareness: {
+                title: "Awareness",
+                text: "<strong>Goal:</strong> Reach, Ad Recall Lift. <br><strong>Buying Type:</strong> Auction or Reservation. <br><strong>Data:</strong> No data source strictly required, but Pixel helps track site visits."
+            },
+            consideration: {
+                title: "Consideration",
+                text: "<strong>Goal:</strong> Traffic, Engagement, Leads, App Promotion. <br><strong>Data:</strong> Pixel (for Landing Page Views), SDK (for App Installs)."
+            },
+            conversion: {
+                title: "Conversion",
+                text: "<strong>Goal:</strong> Sales, Leads (High Intent). <br><strong>Data:</strong> Critical. Requires Pixel/CAPI (Website) or SDK (App) to track Purchase events."
+            }
+        };
+
+        // --- Data: Quiz (Specific Planning Scenarios) ---
+        const quizQuestions = [
+            {
+                id: 1,
+                scenario: "[Unit 2] Client needs to ensure their video ads are seen in a specific sequence (Ad 1, then Ad 2) to tell a story. Which buying type?",
+                options: ["Auction", "Reservation (Sequenced Delivery)", "Target Rating Point", "Reach & Frequency (Standard)"],
+                correct: 1,
+                explanation: "Sequenced Delivery is a feature of Reservation buying that ensures ads are shown in a specific order."
+            },
+            {
+                id: 2,
+                scenario: "[Unit 8] You want to measure the impact of your Facebook ads on in-store sales compared to your TV and Radio spend. Which method is best?",
+                options: ["Brand Lift", "Marketing Mix Modeling (MMM)", "Conversion Lift", "A/B Test"],
+                correct: 1,
+                explanation: "MMM assesses sales outcomes across ALL marketing channels (online and offline) using statistical analysis."
+            },
+            {
+                id: 3,
+                scenario: "[Unit 11] Ad Rejected: 'Do you suffer from Anxiety? Try our tea.' Why?",
+                options: ["Sensational Content", "Personal Attributes", "Restricted Category", "Misleading Claim"],
+                correct: 1,
+                explanation: "The ad implies knowledge of the user's medical condition (Anxiety), violating the Personal Attributes policy."
+            },
+            {
+                id: 4,
+                scenario: "[Unit 4] Client wants to run ads only between 6 PM and 9 PM (Dayparting). Which budget setup is required?",
+                options: ["Daily Budget + Standard Delivery", "Lifetime Budget + Ad Scheduling", "Daily Budget + Accelerated Delivery", "CBO"],
+                correct: 1,
+                explanation: "Ad Scheduling (Dayparting) is ONLY available when using a Lifetime Budget."
+            }
+        ];
+
+        // --- Logic: Funnel ---
+        function updateFunnel(stage) {
+            const data = funnelData[stage];
+            document.getElementById('funnel-title').innerHTML = data.title;
+            document.getElementById('funnel-content').innerHTML = data.text;
+        }
+
+        // --- Logic: Calculator ---
+        function calculateBudget() {
+            const dailyGoal = parseFloat(document.getElementById('calc-sales-goal').value);
+            const days = parseFloat(document.getElementById('calc-days').value);
+            const aov = parseFloat(document.getElementById('calc-aov').value);
+            const cpa = parseFloat(document.getElementById('calc-cpa').value);
+
+            // Formula from PDF Pg 45
+            const totalSales = dailyGoal * days;
+            const orders = totalSales / aov;
+            const budget = orders * cpa;
+
+            document.getElementById('res-total-sales').innerText = '$' + totalSales.toLocaleString();
+            document.getElementById('res-orders').innerText = orders.toLocaleString();
+            document.getElementById('res-budget').innerText = '$' + budget.toLocaleString();
+        }
+
+        // --- Logic: Navigation ---
+        function switchTab(tabId) {
+            ['core', 'budget', 'delivery', 'measurement', 'policy', 'exam'].forEach(id => {
+                document.getElementById(`view-${id}`).classList.add('hidden');
+                document.getElementById(`nav-${id}`).classList.remove('active', 'text-emerald-600');
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).classList.add('active', 'text-emerald-600');
+        }
+
+        // --- Logic: Quiz ---
+        function initQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = quizQuestions.map((q, i) => `
+                <div class="bg-slate-50 border p-5 rounded-lg">
+                    <h4 class="font-bold mb-3">Q${i+1}: ${q.scenario}</h4>
+                    <div class="space-y-2">
+                        ${q.options.map((opt, optIndex) => `
+                            <button onclick="checkAnswer(${i}, ${optIndex}, this)" class="w-full text-left px-4 py-2 bg-white border rounded hover:bg-slate-100 transition-colors text-sm">${opt}</button>
+                        `).join('')}
+                    </div>
+                    <div id="feedback-${i}" class="hidden mt-3 text-sm p-3 rounded"></div>
+                </div>
+            `).join('');
+        }
+
+        function checkAnswer(qIndex, optIndex, btn) {
+            const q = quizQuestions[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const isCorrect = optIndex === q.correct;
+            
+            // Reset buttons in this group
+            const parent = btn.parentElement;
+            Array.from(parent.children).forEach(b => {
+                b.disabled = true;
+                b.classList.add('opacity-50');
+            });
+            btn.classList.remove('opacity-50');
+
+            btn.classList.add(isCorrect ? 'bg-emerald-100' : 'bg-rose-100');
+            btn.classList.add(isCorrect ? 'border-emerald-400' : 'border-rose-400');
+            
+            feedback.className = `mt-3 text-sm p-3 rounded block ${isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`;
+            feedback.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Incorrect.'}</strong> ${q.explanation}`;
+        }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('core');
+            initQuiz();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Ads Video Certification: Interactive Study Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px; /* Taller on desktop */
+            }
+        }
+
+        /* Navigation Active State */
+        .nav-item.active {
+            background-color: #fef2f2; /* red-50 */
+            border-left: 4px solid #dc2626; /* red-600 */
+            color: #991b1b; /* red-800 */
+        }
+        .nav-item {
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+
+        /* Interactive Element Styles */
+        .format-card { transition: all 0.3s ease; }
+        .format-card.dimmed { opacity: 0.3; filter: grayscale(100%); }
+        .format-card.highlighted { transform: scale(1.02); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-color: #dc2626; }
+
+        .hidden-section { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    <!-- Chosen Palette: YouTube-inspired. Slate/White (Backgrounds), Red (Primary Action), Dark Grey (Text). -->
+    
+    <!-- Application Structure Plan:
+         1. Dashboard Layout: Fixed Sidebar (Desktop) / Mobile Header for navigation. Main content area on the right.
+         2. Sections:
+            - Mission Briefing: Intro to YouTube Value (Reach, Relevance, Results).
+            - Format Lab: Interactive filter for Video Formats (Bumpers, In-Stream, Shorts, VAC) by Goal.
+            - Bidding Strategy: Chart.js Bubble plot mapping Goals to Bidding (CPV, CPM, CPA).
+            - Creative Studio: ABCD Framework Builder (Attract, Brand, Connect, Direct).
+            - Advanced Strategy: Sequencing, Brand Lift, Product Feeds.
+            - Exam Room: Interactive accordion for Video-specific traps.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center z-50">
+        <h1 class="text-lg font-bold text-red-600">Video Ads Master</h1>
+        <button id="mobile-menu-btn" class="text-slate-600 focus:outline-none text-2xl">
+            &#9776; <!-- Hamburger Icon -->
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="bg-white w-full md:w-64 border-r border-slate-200 flex-col md:flex hidden fixed md:relative z-40 h-full shadow-lg md:shadow-none transition-transform transform md:translate-x-0 -translate-x-full">
+        <div class="p-6 border-b border-slate-100">
+            <h1 class="text-xl font-bold text-red-600">Video Cert Prep</h1>
+            <p class="text-xs text-slate-500 mt-1">Based on Google Skillshop</p>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li><button onclick="navigateTo('intro')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600 active" id="nav-intro">1. Mission Briefing</button></li>
+                <li><button onclick="navigateTo('formats')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-formats">2. Format Lab</button></li>
+                <li><button onclick="navigateTo('bidding')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-bidding">3. Bidding & Strategy</button></li>
+                <li><button onclick="navigateTo('creative')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-creative">4. Creative Studio</button></li>
+                <li><button onclick="navigateTo('advanced')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-advanced">5. Advanced Strategy</button></li>
+                <li><button onclick="navigateTo('exam')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-exam">6. Exam Room</button></li>
+            </ul>
+        </nav>
+        <div class="p-4 bg-red-50 border-t border-red-100">
+            <p class="text-xs text-red-800 font-semibold">Study Status</p>
+            <div class="w-full bg-red-200 h-2 rounded-full mt-2">
+                <div id="progress-bar" class="bg-red-600 h-2 rounded-full" style="width: 15%"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 relative" id="main-content">
+        
+        <!-- SECTION 1: INTRO & MISSION BRIEFING -->
+        <section id="intro" class="fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Mission Briefing: Sight, Sound, Motion</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Google Ads Video campaigns leverage YouTube's massive scale to deliver emotional impact. The platform is built on three pillars: <strong>Reach, Relevance, and Results</strong>. This guide prepares you for the certification by mastering formats, objectives, and the ABCD creative framework.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Card 1: The Audience -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-100 px-3 py-1 rounded-bl-lg text-xs font-bold text-red-600">REACH</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">The Platform</h3>
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="text-4xl">📺</div> 
+                    </div>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li class="flex items-start"><span class="mr-2 text-red-500">&#10003;</span> <strong>2 Billion+</strong> Logged-in monthly users.</li>
+                        <li class="flex items-start"><span class="mr-2 text-red-500">&#10003;</span> <strong>95%+</strong> Viewability & Audibility.</li>
+                        <li class="flex items-start"><span class="mr-2 text-red-500">&#10003;</span> Targeting based on <strong>Search History</strong> on Google.</li>
+                    </ul>
+                </div>
+
+                <!-- Card 2: The Value -->
+                <div class="bg-white rounded-xl shadow-sm border border-red-200 p-6 relative overflow-hidden ring-2 ring-red-50">
+                    <div class="absolute top-0 right-0 bg-red-600 px-3 py-1 rounded-bl-lg text-xs font-bold text-white">RELEVANCE</div>
+                    <h3 class="text-xl font-bold text-red-700 mb-4">Personal Primetime</h3>
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="text-4xl">🎯</div> 
+                    </div>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li class="flex items-start"><span class="mr-2 text-red-500">&#10003;</span> <strong>Passion Points:</strong> Match ads to content users love.</li>
+                        <li class="flex items-start"><span class="mr-2 text-red-500">&#10003;</span> <strong>Intent:</strong> Use "Custom Intent" to target purchase signals.</li>
+                        <li class="flex items-start"><span class="mr-2 text-red-500">&#10003;</span> <strong>Attention:</strong> Users watch with sound on.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+                <div class="flex">
+                    <div class="flex-shrink-0 text-2xl mr-4">⚠️</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-yellow-800 uppercase">Exam Concept</h4>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            <strong>Google Video Partners (GVP):</strong> Video ads don't just run on YouTube. They can extend to high-quality partner sites and apps (GVP) to increase reach and efficiency (CPVs are often lower).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: FORMAT LAB -->
+        <section id="formats" class="hidden-section fade-in max-w-5xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Video Format Lab</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Selecting the right ad format is the #1 skill tested. Formats align with specific marketing goals. Use the filters to learn which format fits where.
+                </p>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button onclick="filterFormats('all')" class="px-4 py-2 rounded-full bg-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-300 transition focus:outline-none focus:ring-2 focus:ring-red-400 active-filter" data-filter="all">Show All</button>
+                <button onclick="filterFormats('awareness')" class="px-4 py-2 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium hover:bg-blue-50 hover:text-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-400" data-filter="awareness">Goal: Awareness (Reach)</button>
+                <button onclick="filterFormats('consideration')" class="px-4 py-2 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium hover:bg-purple-50 hover:text-purple-600 transition focus:outline-none focus:ring-2 focus:ring-purple-400" data-filter="consideration">Goal: Consideration</button>
+                <button onclick="filterFormats('action')" class="px-4 py-2 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium hover:bg-green-50 hover:text-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-400" data-filter="action">Goal: Action (Sales)</button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                
+                <!-- Awareness Formats -->
+                <div id="card-bumper" class="format-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="awareness">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-blue-700">Bumper Ads</h4>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">6 Seconds</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Non-skippable, 6 seconds max. Designed for high reach and frequency.</p>
+                    <p class="text-xs text-slate-400 mt-1 italic">Bid Strategy: Target CPM.</p>
+                </div>
+
+                <div id="card-nonskip" class="format-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="awareness">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-blue-700">Non-Skippable In-Stream</h4>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">15 Seconds</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Users cannot skip. Guarantees your full message is seen.</p>
+                    <p class="text-xs text-slate-400 mt-1 italic">Bid Strategy: Target CPM.</p>
+                </div>
+
+                <div id="card-masthead" class="format-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="awareness">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-blue-700">Masthead</h4>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Homepage</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Massive reach on the YouTube Homepage. Bought on a reservation basis (CPD/CPM), not auction.</p>
+                </div>
+
+                <div id="card-outstream" class="format-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="awareness">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-blue-700">Outstream</h4>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Mobile Only</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Ads that play on partner sites/apps (GVP), usually without sound until tapped.</p>
+                    <p class="text-xs text-slate-400 mt-1 italic">Bid Strategy: vCPM.</p>
+                </div>
+
+                <!-- Consideration Formats -->
+                <div id="card-skippable" class="format-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="consideration action awareness">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-purple-700">Skippable In-Stream</h4>
+                        <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Versatile</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Plays before/during video. User can skip after 5s. If goal is Consideration, you pay per View (CPV).</p>
+                    <p class="text-xs text-slate-400 mt-1 italic">Trap: A "View" is 30s or the full ad (if shorter).</p>
+                </div>
+
+                <div id="card-infeed" class="format-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="consideration">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-purple-700">In-Feed Video</h4>
+                        <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Discovery</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Thumbnail appears in search results or "Up Next". Users click to watch.</p>
+                    <p class="text-xs text-slate-400 mt-1 italic">Bid Strategy: CPV.</p>
+                </div>
+
+                <!-- Action Formats -->
+                <div id="card-shorts" class="format-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm ring-2 ring-red-100" data-tags="action awareness">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-red-600">YouTube Shorts</h4>
+                        <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Vertical</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Full-screen vertical video (under 60s). Massive organic engagement. Ideal for mobile action.</p>
+                    <p class="text-xs text-slate-400 mt-1 italic">Included in: Video Action Campaigns, Video Reach.</p>
+                </div>
+
+                <div id="card-vac" class="format-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="action">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-green-700">Video Action Campaigns</h4>
+                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Conversion</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-2">Multi-format container: Skippable In-Stream + In-Feed + Shorts. Adds CTAs and End Screens.</p>
+                    <p class="text-xs text-slate-400 mt-1 italic">Bid Strategy: Target CPA.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 3: BIDDING STRATEGY -->
+        <section id="bidding" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Bidding Strategy Matrix</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Video bidding is unique. Understand when to pay for a "View" vs. an "Impression" vs. an "Action".
+                </p>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+                <div class="chart-container">
+                    <canvas id="biddingChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Details List -->
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="p-4 border border-blue-200 bg-blue-50 rounded-lg">
+                    <h3 class="font-bold text-blue-800 mb-2">Target CPM</h3>
+                    <p class="text-xs text-blue-700"><strong>Cost Per Mille.</strong> Use for Awareness (Bumpers, Non-Skip) or <strong>Video Reach Campaigns</strong> (which mix formats).</p>
+                </div>
+                <div class="p-4 border border-purple-200 bg-purple-50 rounded-lg">
+                    <h3 class="font-bold text-purple-800 mb-2">Maximum CPV</h3>
+                    <p class="text-xs text-purple-700"><strong>Cost Per View.</strong> You pay when a user watches 30s (or full ad) OR interacts. Use for Consideration.</p>
+                </div>
+                <div class="p-4 border border-green-200 bg-green-50 rounded-lg">
+                    <h3 class="font-bold text-green-800 mb-2">Target CPA</h3>
+                    <p class="text-xs text-green-700"><strong>Cost Per Action.</strong> You pay for conversions. Use for Video Action Campaigns (VAC).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: CREATIVE STUDIO -->
+        <section id="creative" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Creative Studio: The ABCD Framework</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Creative drives 70% of campaign performance. Google's data-backed framework for effective video ads is <strong>ABCD</strong>. Build your ad concept below.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Checklist -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">ABCD Checklist</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-2 rounded hover:bg-slate-50">
+                            <div>
+                                <strong class="text-red-600">A</strong>ttract
+                                <p class="text-xs text-slate-500">Hook audience in first 5 seconds. Use fast pacing/tight framing.</p>
+                            </div>
+                            <input type="checkbox" id="check-attract" class="w-5 h-5 text-red-600" onchange="updateABCD()">
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded hover:bg-slate-50">
+                            <div>
+                                <strong class="text-red-600">B</strong>rand
+                                <p class="text-xs text-slate-500">Introduce product/logo early & often. <strong>Mention it via Audio.</strong></p>
+                            </div>
+                            <input type="checkbox" id="check-brand" class="w-5 h-5 text-red-600" onchange="updateABCD()">
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded hover:bg-slate-50">
+                            <div>
+                                <strong class="text-red-600">C</strong>onnect
+                                <p class="text-xs text-slate-500">Make them feel something. Audio drives emotion on YouTube.</p>
+                            </div>
+                            <input type="checkbox" id="check-connect" class="w-5 h-5 text-red-600" onchange="updateABCD()">
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded hover:bg-slate-50">
+                            <div>
+                                <strong class="text-red-600">D</strong>irect
+                                <p class="text-xs text-slate-500">Clear Call-to-Action (CTA). "Buy Now", "Sign Up".</p>
+                            </div>
+                            <input type="checkbox" id="check-direct" class="w-5 h-5 text-red-600" onchange="updateABCD()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview / Strength Meter -->
+                <div class="bg-slate-800 p-6 rounded-xl shadow-lg text-white flex flex-col justify-center items-center relative">
+                    <h3 class="text-lg font-bold mb-6">Effective Creative Score</h3>
+                    
+                    <div class="w-48 h-48 relative flex items-center justify-center">
+                        <canvas id="strengthCanvas" width="200" height="200"></canvas>
+                        <div class="absolute text-2xl font-bold" id="strength-text">Start</div>
+                    </div>
+
+                    <p class="text-sm text-slate-400 mt-6 text-center" id="strength-feedback">
+                        Apply all 4 principles for maximum impact.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: ADVANCED STRATEGY -->
+        <section id="advanced" class="hidden-section fade-in max-w-5xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Advanced Strategy</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Level up your knowledge with these advanced tools designed for full-funnel marketing.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Strategy 1: Sequencing -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="text-4xl mb-4">🔁</div>
+                    <h3 class="font-bold text-slate-800 mb-2">Video Ad Sequencing (VAS)</h3>
+                    <p class="text-sm text-slate-600 mb-4">Tell a story by showing ads in a specific order to the same user.</p>
+                    <div class="flex items-center text-xs text-slate-500 font-mono bg-slate-100 p-2 rounded">
+                        <span class="bg-blue-200 px-1 rounded">Tease</span>
+                        <span class="mx-1">→</span>
+                        <span class="bg-purple-200 px-1 rounded">Amplify</span>
+                        <span class="mx-1">→</span>
+                        <span class="bg-green-200 px-1 rounded">Echo</span>
+                    </div>
+                </div>
+
+                <!-- Strategy 2: Product Feeds -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="text-4xl mb-4">🛍️</div>
+                    <h3 class="font-bold text-slate-800 mb-2">Product Feeds</h3>
+                    <p class="text-sm text-slate-600">Turn YouTube into a storefront. Link your <strong>Google Merchant Center</strong> feed to Video Action Campaigns.</p>
+                    <p class="text-xs text-green-600 mt-2 font-bold">Result: +60% Conversion Rate on avg.</p>
+                </div>
+
+                <!-- Strategy 3: Brand Lift -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="text-4xl mb-4">📊</div>
+                    <h3 class="font-bold text-slate-800 mb-2">Brand Lift Measurement</h3>
+                    <p class="text-sm text-slate-600">Free survey tool for qualifying campaigns. Measures metrics like <strong>Ad Recall</strong>, <strong>Brand Awareness</strong>, and <strong>Consideration</strong> via user surveys.</p>
+                </div>
+
+                 <!-- Strategy 4: Video Reach -->
+                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="text-4xl mb-4">⚡</div>
+                    <h3 class="font-bold text-slate-800 mb-2">Video Reach Campaigns (VRC)</h3>
+                    <p class="text-sm text-slate-600">The "Smart Campaign" of Awareness. AI automatically mixes Bumpers + Skippable + Non-Skippable to get the most unique reach for your budget.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 6: EXAM ROOM -->
+        <section id="exam" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Exam Room: Traps & Tips</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Review specific definitions that often trip up test-takers.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Trap 1 -->
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-slate-50 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('trap1')">
+                        <span>Trap: What counts as a "View" (CPV)?</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="trap1" class="hidden-section p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200">
+                        <strong>Answer:</strong> A view is counted when a user watches <strong>30 seconds</strong> of the ad, OR the <strong>full duration</strong> (if shorter than 30s), OR <strong>interacts</strong> (clicks CTA), whichever comes first.
+                    </div>
+                </div>
+
+                <!-- Trap 2 -->
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-slate-50 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('trap2')">
+                        <span>Trap: Bumper Ads Bidding</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="trap2" class="hidden-section p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200">
+                        <strong>Answer:</strong> Bumper ads (6 seconds) MUST use <strong>Target CPM</strong> bidding. They cannot use CPV because a "view" requires engagement or length they don't have.
+                    </div>
+                </div>
+
+                <!-- Policy 1 -->
+                <div class="border border-red-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-red-50 flex justify-between items-center font-bold text-red-700" onclick="toggleAccordion('policy1')">
+                        <span>Exam Tip: Video Action Campaigns (VAC)</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="policy1" class="hidden-section p-4 bg-red-50 text-sm text-red-800 border-t border-red-200">
+                        If the goal is <strong>Conversions</strong> (Sales, Leads), the answer is almost always Video Action Campaigns using <strong>Target CPA</strong>.
+                    </div>
+                </div>
+
+                <!-- Exam Question: Brand Lift -->
+                <div class="border border-red-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-red-50 flex justify-between items-center font-bold text-red-700" onclick="toggleAccordion('exam1')">
+                        <span>Exam Question: How to measure Awareness lift?</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="exam1" class="hidden-section p-4 bg-red-50 text-sm text-red-800 border-t border-red-200">
+                        The answer is <strong>Brand Lift</strong>. It uses surveys (not clicks) to measure Ad Recall and Brand Awareness among users who saw your ad vs. those who didn't.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Navigation Logic ---
+        function navigateTo(sectionId) {
+            // Hide all sections
+            const sections = ['intro', 'formats', 'bidding', 'creative', 'advanced', 'exam'];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden-section');
+                document.getElementById(`nav-${id}`).classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(sectionId).classList.remove('hidden-section');
+            document.getElementById(`nav-${sectionId}`).classList.add('active');
+
+            // Scroll to top
+            document.getElementById('main-content').scrollTop = 0;
+
+            // Update Progress Bar (Simulated)
+            const index = sections.indexOf(sectionId);
+            const progress = ((index + 1) / sections.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // Trigger specific renders
+            if(sectionId === 'bidding') renderBiddingChart();
+            if(sectionId === 'creative') updateABCD();
+
+            // Mobile menu handling
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // --- Format Filter Logic ---
+        function filterFormats(filter) {
+            const cards = document.querySelectorAll('.format-card');
+            const buttons = document.querySelectorAll('button[data-filter]');
+
+            // Update buttons state
+            buttons.forEach(btn => {
+                if(btn.dataset.filter === filter) {
+                    btn.classList.add('ring-2', 'ring-offset-1');
+                    if(filter === 'all') btn.classList.add('bg-slate-300');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-offset-1', 'bg-slate-300');
+                }
+            });
+
+            // Filter cards
+            cards.forEach(card => {
+                const tags = card.dataset.tags;
+                if(filter === 'all' || tags.includes(filter)) {
+                    card.classList.remove('dimmed');
+                    card.classList.add('highlighted');
+                } else {
+                    card.classList.add('dimmed');
+                    card.classList.remove('highlighted');
+                }
+            });
+        }
+
+        // --- Bidding Chart (Chart.js) ---
+        let biddingChart = null;
+
+        function renderBiddingChart() {
+            if(biddingChart) return; // Only render once
+
+            const ctx = document.getElementById('biddingChart').getContext('2d');
+            biddingChart = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Video Bidding',
+                        data: [
+                            { x: 10, y: 80, r: 15, strategy: 'Target CPM', type: 'Awareness' },
+                            { x: 20, y: 70, r: 10, strategy: 'vCPM', type: 'Outstream' },
+                            { x: 50, y: 50, r: 20, strategy: 'Max CPV', type: 'Consideration' },
+                            { x: 85, y: 20, r: 20, strategy: 'Target CPA', type: 'Action' },
+                            { x: 90, y: 30, r: 15, strategy: 'Max Conversions', type: 'Action' }
+                        ],
+                        backgroundColor: function(context) {
+                            const type = context.raw?.type;
+                            if(type === 'Awareness' || type === 'Outstream') return 'rgba(59, 130, 246, 0.6)'; // Blue
+                            if(type === 'Consideration') return 'rgba(168, 85, 247, 0.6)'; // Purple
+                            return 'rgba(34, 197, 94, 0.6)'; // Green
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Funnel Stage (Awareness -> Action)' },
+                            min: 0, max: 100,
+                            ticks: { display: false }
+                        },
+                        y: {
+                            title: { display: true, text: 'Focus on Views (High) vs Conversions (Low)' },
+                            min: 0, max: 100,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.strategy;
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- ABCD Framework Logic ---
+        function updateABCD() {
+            const checks = [
+                document.getElementById('check-attract').checked,
+                document.getElementById('check-brand').checked,
+                document.getElementById('check-connect').checked,
+                document.getElementById('check-direct').checked
+            ];
+            
+            const score = checks.filter(Boolean).length;
+            const maxScore = 4;
+            const percentage = score / maxScore;
+
+            // Canvas drawing
+            const canvas = document.getElementById('strengthCanvas');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+
+            // Clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background Circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 15;
+            ctx.strokeStyle = '#334155'; // Slate 700
+            ctx.stroke();
+
+            // Progress Arc
+            const startAngle = -0.5 * Math.PI;
+            const endAngle = (2 * percentage * Math.PI) - 0.5 * Math.PI;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.lineWidth = 15;
+            // Color based on score
+            if(score <= 1) ctx.strokeStyle = '#ef4444'; // Red
+            else if(score <= 3) ctx.strokeStyle = '#3b82f6'; // Blue
+            else ctx.strokeStyle = '#22c55e'; // Green
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Text Update
+            const textEl = document.getElementById('strength-text');
+            const feedEl = document.getElementById('strength-feedback');
+            
+            if(score === 0) { textEl.innerText = 'Start'; textEl.className = 'absolute text-2xl font-bold text-slate-500'; feedEl.innerText = "Select ABCD steps."; }
+            else if(score <= 2) { textEl.innerText = 'Weak'; textEl.className = 'absolute text-2xl font-bold text-red-500'; feedEl.innerText = "Don't forget to Brand early!"; }
+            else if(score <= 3) { textEl.innerText = 'Good'; textEl.className = 'absolute text-2xl font-bold text-blue-500'; feedEl.innerText = "Almost there. Is the CTA clear?"; }
+            else { textEl.innerText = 'Perfect'; textEl.className = 'absolute text-2xl font-bold text-green-500'; feedEl.innerText = "Ready for Launch!"; }
+        }
+
+        // --- Accordion Logic ---
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden-section')) {
+                el.classList.remove('hidden-section');
+                el.classList.add('fade-in');
+            } else {
+                el.classList.add('hidden-section');
+            }
+        }
+
+        // Init
+        window.addEventListener('load', () => {
+            renderBiddingChart(); 
+            updateABCD();
+        });
+
+    </script>
+</body>
+</html>

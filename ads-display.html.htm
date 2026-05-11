@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Ads Display Certification: Interactive Study Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px; /* Taller on desktop */
+            }
+        }
+
+        /* Navigation Active State */
+        .nav-item.active {
+            background-color: #eff6ff; /* blue-50 */
+            border-left: 4px solid #2563eb; /* blue-600 */
+            color: #1e40af; /* blue-800 */
+        }
+        .nav-item {
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+
+        /* Interactive Element Styles */
+        .targeting-card { transition: all 0.3s ease; }
+        .targeting-card.dimmed { opacity: 0.3; filter: grayscale(100%); }
+        .targeting-card.highlighted { transform: scale(1.02); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-color: #3b82f6; }
+
+        .hidden-section { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    <!-- Chosen Palette: Google Material-inspired. Slate (Neutral Backgrounds), Blue (Primary Action), Red/Yellow/Green (Status/Alerts). Clean, professional, high contrast. -->
+    
+    <!-- Application Structure Plan:
+         1. Dashboard Layout: Fixed Sidebar (Desktop) / Mobile Header for navigation. Main content area on the right.
+         2. Sections:
+            - Mission Briefing: Deep dive into GDN Reach & Strategy (Push Marketing).
+            - Targeting Lab: Interactive filter to distinguish "Who" (Audiences) vs. "Where" (Contextual).
+            - Bidding Strategy: Chart.js Scatter plot mapping Goals to Strategies (Awareness vs. Conversion).
+            - Creative Studio: Simulation of RDA assets and Ad Strength logic.
+            - Exam Room: Interactive accordion for Policy, Traps, and Tips.
+         3. User Flow: Linear or non-linear exploration. Users click sidebar items to switch views (SPA).
+         4. Rationale: Focused entirely on Display nuances (Reach, Visuals, Data) to aid specific certification study.
+    -->
+
+    <!-- Visualization & Content Choices:
+         - Intro: Value Proposition Cards (Reach vs Engagement) replacing the old comparison.
+         - Targeting: Interactive Grid with JS Filtering.
+         - Bidding: Chart.js Bubble Chart.
+         - Creative: Ad Strength Simulation.
+         - Exam: JS Accordion for policy traps.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center z-50">
+        <h1 class="text-lg font-bold text-blue-700">Display Ads Master</h1>
+        <button id="mobile-menu-btn" class="text-slate-600 focus:outline-none text-2xl">
+            &#9776; <!-- Hamburger Icon -->
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="bg-white w-full md:w-64 border-r border-slate-200 flex-col md:flex hidden fixed md:relative z-40 h-full shadow-lg md:shadow-none transition-transform transform md:translate-x-0 -translate-x-full">
+        <div class="p-6 border-b border-slate-100">
+            <h1 class="text-xl font-bold text-blue-700">Display Cert Prep</h1>
+            <p class="text-xs text-slate-500 mt-1">Based on Google Skillshop</p>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li><button onclick="navigateTo('intro')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600 active" id="nav-intro">1. Mission Briefing</button></li>
+                <li><button onclick="navigateTo('targeting')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-targeting">2. Targeting Lab</button></li>
+                <li><button onclick="navigateTo('bidding')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-bidding">3. Bidding & Strategy</button></li>
+                <li><button onclick="navigateTo('creative')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-creative">4. Creative Studio</button></li>
+                <li><button onclick="navigateTo('exam')" class="nav-item w-full text-left px-6 py-3 text-sm font-medium hover:bg-slate-50 text-slate-600" id="nav-exam">5. Exam Room</button></li>
+            </ul>
+        </nav>
+        <div class="p-4 bg-blue-50 border-t border-blue-100">
+            <p class="text-xs text-blue-800 font-semibold">Study Status</p>
+            <div class="w-full bg-blue-200 h-2 rounded-full mt-2">
+                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full" style="width: 20%"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 relative" id="main-content">
+        
+        <!-- SECTION 1: INTRO & MISSION BRIEFING -->
+        <section id="intro" class="fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Mission Briefing: Mastering the Display Network</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    The Google Display Network (GDN) is your tool for visual storytelling. It allows you to find the right audience, at the right time, on millions of properties worldwide. This guide focuses on the unique mechanics of "Push Marketing"—creating demand rather than just capturing it.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Card 1: Reach -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-blue-100 px-3 py-1 rounded-bl-lg text-xs font-bold text-blue-600">SCALE</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Unmatched Reach</h3>
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="text-4xl">🌍</div> 
+                    </div>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li class="flex items-start"><span class="mr-2 text-blue-500">&#10003;</span> <strong>3 Million+</strong> Websites & Apps.</li>
+                        <li class="flex items-start"><span class="mr-2 text-blue-500">&#10003;</span> Reaches <strong>90%</strong> of internet users globally.</li>
+                        <li class="flex items-start"><span class="mr-2 text-blue-500">&#10003;</span> Includes YouTube, Gmail, and Discover.</li>
+                    </ul>
+                </div>
+
+                <!-- Card 2: Strategy -->
+                <div class="bg-white rounded-xl shadow-sm border border-blue-200 p-6 relative overflow-hidden ring-2 ring-blue-50">
+                    <div class="absolute top-0 right-0 bg-blue-600 px-3 py-1 rounded-bl-lg text-xs font-bold text-white">STRATEGY</div>
+                    <h3 class="text-xl font-bold text-blue-700 mb-4">"Push" Marketing</h3>
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="text-4xl">🚀</div> 
+                    </div>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li class="flex items-start"><span class="mr-2 text-blue-500">&#10003;</span> <strong>Generate Demand:</strong> Find users <em>before</em> they search.</li>
+                        <li class="flex items-start"><span class="mr-2 text-blue-500">&#10003;</span> <strong>Visual Impact:</strong> Use images/video to engage emotionally.</li>
+                        <li class="flex items-start"><span class="mr-2 text-blue-500">&#10003;</span> <strong>Automation:</strong> Smart algorithms match ads to context.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+                <div class="flex">
+                    <div class="flex-shrink-0 text-2xl mr-4">⚠️</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-yellow-800 uppercase">Exam Concept</h4>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            The primary goal of Display is <strong>Awareness</strong> and <strong>Consideration</strong>. While it <em>can</em> drive sales, the exam focuses on its ability to "keep your brand top-of-mind" while users browse their favorite content.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <h3 class="font-bold text-lg mb-3">Core Campaign Types</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-3 bg-slate-50 rounded border border-slate-100">
+                        <div class="font-bold text-slate-700">Standard Display</div>
+                        <div class="text-xs text-slate-500 mt-1">Manual control over targeting (Audiences/Placements) and bidding. Best for strict brand safety needs.</div>
+                    </div>
+                    <div class="p-3 bg-blue-50 rounded border border-blue-100">
+                        <div class="font-bold text-blue-700">Performance Max</div>
+                        <div class="text-xs text-blue-600 mt-1">Goal-based automation. Accesses Display inventory alongside Search/YouTube. Best for maximizing conversions.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: TARGETING LAB -->
+        <section id="targeting" class="hidden-section fade-in max-w-5xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Targeting Lab</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Targeting is the core of the exam. It splits into "Who" (Audiences) and "Where" (Context). Use the filters below to highlight which targeting methods align with specific marketing goals.
+                </p>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button onclick="filterTargeting('all')" class="px-4 py-2 rounded-full bg-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-300 transition focus:outline-none focus:ring-2 focus:ring-blue-400 active-filter" data-filter="all">Show All</button>
+                <button onclick="filterTargeting('awareness')" class="px-4 py-2 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium hover:bg-blue-50 hover:text-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-400" data-filter="awareness">Goal: Awareness (Broad)</button>
+                <button onclick="filterTargeting('action')" class="px-4 py-2 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium hover:bg-green-50 hover:text-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-400" data-filter="action">Goal: Action (Conversion)</button>
+                <button onclick="filterTargeting('context')" class="px-4 py-2 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium hover:bg-purple-50 hover:text-purple-600 transition focus:outline-none focus:ring-2 focus:ring-purple-400" data-filter="context">The "Where" (Content)</button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                
+                <!-- Column A: Audiences (The Who) -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-slate-400 uppercase text-xs tracking-wider">The "Who" (People)</h3>
+                    
+                    <div id="card-affinity" class="targeting-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="awareness">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-blue-700">Affinity Audiences</h4>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Awareness</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">Reach people based on <strong>long-term</strong> passions, habits, and lifestyle.</p>
+                        <p class="text-xs text-slate-400 mt-1 italic">Ex: "Foodies", "Technophiles".</p>
+                    </div>
+
+                    <div id="card-demographics" class="targeting-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="awareness action">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700">Demographics</h4>
+                            <span class="text-xs bg-slate-100 text-slate-800 px-2 py-1 rounded">Broad</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">Age, Gender, Parental Status, Household Income.</p>
+                    </div>
+
+                    <div id="card-inmarket" class="targeting-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="action">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-green-700">In-Market Audiences</h4>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Intent</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">Reach people <strong>actively researching</strong> or planning to buy right now.</p>
+                        <p class="text-xs text-slate-400 mt-1 italic">Ex: "In-market for SUVs".</p>
+                    </div>
+
+                    <div id="card-life-events" class="targeting-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="action awareness">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700">Life Events</h4>
+                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Milestones</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">Targeting around major life moments: Marriage, Moving, Graduation.</p>
+                    </div>
+
+                    <div id="card-remarketing" class="targeting-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="action">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-green-700">Remarketing</h4>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Re-engage</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">Target users who have <strong>previously visited</strong> your site.</p>
+                    </div>
+                </div>
+
+                <!-- Column B: Content (The Where) -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-slate-400 uppercase text-xs tracking-wider">The "Where" (Context)</h3>
+
+                    <div id="card-topics" class="targeting-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="context awareness">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700">Topics</h4>
+                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Contextual</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">Target broad categories of websites.</p>
+                        <p class="text-xs text-slate-400 mt-1 italic">Ex: "All Finance Websites".</p>
+                    </div>
+
+                    <div id="card-keywords" class="targeting-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="context">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700">Display Keywords</h4>
+                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Contextual</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">Google scans page <strong>content</strong> for your keywords to place ads. Matches content, not search queries.</p>
+                    </div>
+
+                    <div id="card-placements" class="targeting-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm" data-tags="context">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700">Placements</h4>
+                            <span class="text-xs bg-slate-100 text-slate-800 px-2 py-1 rounded">Precise</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">Target specific URLs, YouTube Channels, or Apps. High control, lower reach.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 bg-slate-100 p-4 rounded text-sm text-slate-600">
+                <strong>Advanced Concept: Optimized Targeting</strong>. This is a default setting that lets Google find people <em>beyond</em> your signals if the data suggests they will convert. It's like an automated expansion of your targeting.
+            </div>
+        </section>
+
+        <!-- SECTION 3: BIDDING STRATEGY -->
+        <section id="bidding" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Bidding & Budgeting Matrix</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Choosing the right bid strategy depends on your objective. Use the chart below to visualize where each strategy fits on the Awareness-to-Conversion spectrum.
+                </p>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+                <div class="chart-container">
+                    <canvas id="biddingChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Details List -->
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="p-4 border border-blue-200 bg-blue-50 rounded-lg">
+                    <h3 class="font-bold text-blue-800 mb-2">Awareness: vCPM</h3>
+                    <p class="text-sm text-blue-700"><strong>Viewable Cost-Per-Thousand.</strong> You pay when 50% of the ad is on screen for 1 second. Best for Branding/Visibility.</p>
+                </div>
+                <div class="p-4 border border-green-200 bg-green-50 rounded-lg">
+                    <h3 class="font-bold text-green-800 mb-2">Efficiency: Target CPA</h3>
+                    <p class="text-sm text-green-700"><strong>Cost Per Action.</strong> Get as many conversions as possible at a specific cost (e.g., $10 per lead).</p>
+                </div>
+                <div class="p-4 border border-green-200 bg-green-50 rounded-lg">
+                    <h3 class="font-bold text-green-800 mb-2">Value: Target ROAS</h3>
+                    <p class="text-sm text-green-700"><strong>Return On Ad Spend.</strong> Get the highest revenue for your spend. (e.g., 400% ROI).</p>
+                </div>
+                <div class="p-4 border border-slate-200 bg-white rounded-lg">
+                    <h3 class="font-bold text-slate-800 mb-2">Volume: Maximize Conversions</h3>
+                    <p class="text-sm text-slate-600">Spend the entire budget to get the maximum volume of conversions, regardless of CPA.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: CREATIVE STUDIO -->
+        <section id="creative" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Creative Studio: RDAs</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Responsive Display Ads (RDAs) are the default format. You provide assets, Google mixes them. Build a high-quality ad below to see how Ad Strength improves.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Builder -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">Asset Checklist</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Images (Landscape & Square)</span>
+                            <input type="checkbox" id="check-images" class="w-5 h-5 text-blue-600" onchange="updateAdStrength()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Logos</span>
+                            <input type="checkbox" id="check-logos" class="w-5 h-5 text-blue-600" onchange="updateAdStrength()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Headlines (Short & Long)</span>
+                            <input type="checkbox" id="check-headlines" class="w-5 h-5 text-blue-600" onchange="updateAdStrength()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Descriptions</span>
+                            <input type="checkbox" id="check-descriptions" class="w-5 h-5 text-blue-600" onchange="updateAdStrength()">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Videos (Optional)</span>
+                            <input type="checkbox" id="check-videos" class="w-5 h-5 text-blue-600" onchange="updateAdStrength()">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-slate-50 p-4 rounded text-xs text-slate-500">
+                        <strong>Why RDAs?</strong> Reach & Efficiency. They automatically resize to fit <em>any</em> ad slot on the GDN (300x250, 728x90, native, etc.).
+                    </div>
+                </div>
+
+                <!-- Preview / Strength Meter -->
+                <div class="bg-slate-800 p-6 rounded-xl shadow-lg text-white flex flex-col justify-center items-center relative">
+                    <h3 class="text-lg font-bold mb-6">Ad Strength</h3>
+                    
+                    <div class="w-48 h-48 relative flex items-center justify-center">
+                        <!-- Canvas for Circular Progress -->
+                        <canvas id="strengthCanvas" width="200" height="200"></canvas>
+                        <div class="absolute text-2xl font-bold" id="strength-text">Poor</div>
+                    </div>
+
+                    <p class="text-sm text-slate-400 mt-6 text-center" id="strength-feedback">
+                        Add more assets to improve machine learning optimization.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: EXAM ROOM -->
+        <section id="exam" class="hidden-section fade-in max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Exam Room</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Review common policy pitfalls and exam traps before taking the test. Click each item to reveal details.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Trap 1 -->
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-slate-50 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('trap1')">
+                        <span>Trap: Display Keywords vs. Search Keywords</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="trap1" class="hidden-section p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200">
+                        <strong>Correction:</strong> Search keywords target <em>user queries</em>. Display keywords target <em>website content (context)</em>. Don't confuse the two!
+                    </div>
+                </div>
+
+                <!-- Trap 2 -->
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-slate-50 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('trap2')">
+                        <span>Metric: View-Through Conversions</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="trap2" class="hidden-section p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200">
+                        <strong>Definition:</strong> A user sees your ad, does NOT click, but converts later. This metric proves the value of Display impressions for branding impact.
+                    </div>
+                </div>
+
+                <!-- Policy 1 -->
+                <div class="border border-red-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-red-50 flex justify-between items-center font-bold text-red-700" onclick="toggleAccordion('policy1')">
+                        <span>Policy: Image Quality Disapprovals</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="policy1" class="hidden-section p-4 bg-red-50 text-sm text-red-800 border-t border-red-200">
+                        Common reasons for disapproval: Blurry images, upside-down images, or images with text overlays that mimic buttons (e.g., a fake "Play" button).
+                    </div>
+                </div>
+
+                <!-- Policy 2 -->
+                <div class="border border-red-200 rounded-lg overflow-hidden">
+                    <button class="w-full text-left p-4 bg-white hover:bg-red-50 flex justify-between items-center font-bold text-red-700" onclick="toggleAccordion('policy2')">
+                        <span>Policy: Value Promises</span>
+                        <span class="text-xl">+</span>
+                    </button>
+                    <div id="policy2" class="hidden-section p-4 bg-red-50 text-sm text-red-800 border-t border-red-200">
+                        You cannot make misleading claims or promises you can't keep (e.g., "Cure baldness in 1 day").
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <h3 class="font-bold text-blue-800 mb-2">Final Exam Checklist</h3>
+                <ul class="list-disc list-inside space-y-2 text-sm text-blue-700">
+                    <li>Know the difference between <strong>Affinity</strong> (Interest) vs. <strong>In-Market</strong> (Intent).</li>
+                    <li>Understand that <strong>vCPM</strong> is the specific metric for Brand Awareness campaigns.</li>
+                    <li>Remember that <strong>Automated Bidding</strong> is preferred over manual bidding for large-scale Display campaigns.</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Navigation Logic ---
+        function navigateTo(sectionId) {
+            // Hide all sections
+            const sections = ['intro', 'targeting', 'bidding', 'creative', 'exam'];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden-section');
+                document.getElementById(`nav-${id}`).classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(sectionId).classList.remove('hidden-section');
+            document.getElementById(`nav-${sectionId}`).classList.add('active');
+
+            // Scroll to top
+            document.getElementById('main-content').scrollTop = 0;
+
+            // Update Progress Bar (Simulated)
+            const index = sections.indexOf(sectionId);
+            const progress = ((index + 1) / sections.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // Trigger specific renders if needed
+            if(sectionId === 'bidding') renderBiddingChart();
+            if(sectionId === 'creative') updateAdStrength();
+
+            // Mobile menu handling
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // --- Targeting Filter Logic ---
+        function filterTargeting(filter) {
+            const cards = document.querySelectorAll('.targeting-card');
+            const buttons = document.querySelectorAll('button[data-filter]');
+
+            // Update buttons state
+            buttons.forEach(btn => {
+                if(btn.dataset.filter === filter) {
+                    btn.classList.add('ring-2', 'ring-offset-1');
+                    if(filter === 'all') btn.classList.add('bg-slate-300');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-offset-1', 'bg-slate-300');
+                }
+            });
+
+            // Filter cards
+            cards.forEach(card => {
+                const tags = card.dataset.tags;
+                if(filter === 'all' || tags.includes(filter)) {
+                    card.classList.remove('dimmed');
+                    card.classList.add('highlighted');
+                } else {
+                    card.classList.add('dimmed');
+                    card.classList.remove('highlighted');
+                }
+            });
+        }
+
+        // --- Bidding Chart (Chart.js) ---
+        let biddingChart = null;
+
+        function renderBiddingChart() {
+            if(biddingChart) return; // Only render once
+
+            const ctx = document.getElementById('biddingChart').getContext('2d');
+            biddingChart = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Bidding Strategies',
+                        data: [
+                            { x: 10, y: 10, r: 15, strategy: 'vCPM', type: 'Awareness' },
+                            { x: 30, y: 50, r: 10, strategy: 'Max Clicks', type: 'Traffic' },
+                            { x: 60, y: 70, r: 15, strategy: 'Max Conversions', type: 'Volume' },
+                            { x: 80, y: 90, r: 20, strategy: 'Target CPA', type: 'Efficiency' },
+                            { x: 90, y: 90, r: 20, strategy: 'Target ROAS', type: 'Value' }
+                        ],
+                        backgroundColor: function(context) {
+                            const val = context.raw?.x;
+                            if(val < 40) return 'rgba(59, 130, 246, 0.6)'; // Blue
+                            if(val < 70) return 'rgba(168, 85, 247, 0.6)'; // Purple
+                            return 'rgba(34, 197, 94, 0.6)'; // Green
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Funnel Stage (Awareness -> Conversion)' },
+                            min: 0, max: 100,
+                            ticks: { display: false }
+                        },
+                        y: {
+                            title: { display: true, text: 'Automation Level' },
+                            min: 0, max: 100,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.strategy + ' (' + context.raw.type + ')';
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- Creative Studio (Ad Strength Logic) ---
+        function updateAdStrength() {
+            const checks = [
+                document.getElementById('check-images').checked,
+                document.getElementById('check-logos').checked,
+                document.getElementById('check-headlines').checked,
+                document.getElementById('check-descriptions').checked,
+                document.getElementById('check-videos').checked
+            ];
+            
+            const score = checks.filter(Boolean).length;
+            const maxScore = 5;
+            const percentage = score / maxScore;
+
+            // Canvas drawing
+            const canvas = document.getElementById('strengthCanvas');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+
+            // Clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background Circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 15;
+            ctx.strokeStyle = '#334155'; // Slate 700
+            ctx.stroke();
+
+            // Progress Arc
+            const startAngle = -0.5 * Math.PI;
+            const endAngle = (2 * percentage * Math.PI) - 0.5 * Math.PI;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.lineWidth = 15;
+            // Color based on score
+            if(score <= 2) ctx.strokeStyle = '#ef4444'; // Red
+            else if(score <= 4) ctx.strokeStyle = '#3b82f6'; // Blue
+            else ctx.strokeStyle = '#22c55e'; // Green
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Text Update
+            const textEl = document.getElementById('strength-text');
+            const feedEl = document.getElementById('strength-feedback');
+            
+            if(score === 0) { textEl.innerText = 'None'; textEl.className = 'absolute text-2xl font-bold text-slate-500'; feedEl.innerText = "Select assets to start."; }
+            else if(score <= 2) { textEl.innerText = 'Poor'; textEl.className = 'absolute text-2xl font-bold text-red-500'; feedEl.innerText = "Add Headlines and Descriptions."; }
+            else if(score <= 4) { textEl.innerText = 'Good'; textEl.className = 'absolute text-2xl font-bold text-blue-500'; feedEl.innerText = "Add Videos for Excellent score."; }
+            else { textEl.innerText = 'Excellent'; textEl.className = 'absolute text-2xl font-bold text-green-500'; feedEl.innerText = "Great job! Maximum reach achieved."; }
+        }
+
+        // --- Accordion Logic ---
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden-section')) {
+                el.classList.remove('hidden-section');
+                el.classList.add('fade-in');
+            } else {
+                el.classList.add('hidden-section');
+            }
+        }
+
+        // Init
+        window.addEventListener('load', () => {
+            renderBiddingChart(); // Pre-load chart
+            updateAdStrength();
+        });
+
+    </script>
+</body>
+</html>
